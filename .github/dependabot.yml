@@ -7,6 +7,23 @@ updates:
     groups:
       minor-and-patch:
         update-types: ["minor", "patch"]
+    # Deux majeures que la chaîne d'outils n8n ne supporte pas encore. Sans ce filtre,
+    # Dependabot rouvre une PR à chaque patch de la branche majeure, et elle échoue
+    # toujours au même endroit (cf. PR #4 et #6, fermées avec les traces).
+    #
+    # - eslint 10 supprime `context.getFilename()`, encore appelé par
+    #   eslint-plugin-n8n-nodes-base (dépendance de @n8n/node-cli, qui épingle eslint 9.29.0).
+    # - typescript 7 change l'API compilateur ; ts-api-utils lit encore
+    #   `ts.TypeFlags.Intrinsic`, via typescript-eslint@^8 embarqué par @n8n/node-cli.
+    #
+    # À retirer dès que @n8n/node-cli publie une release compatible : les minor/patch des
+    # branches actuelles (eslint 9.x, typescript 5.x) continuent de passer par le groupe
+    # minor-and-patch ci-dessus, seules les majeures sont filtrées.
+    ignore:
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
