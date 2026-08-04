@@ -1,7 +1,7 @@
 {
 	"name": "n8n-nodes-frappe-hrms",
 	"version": "0.1.0",
-	"description": "Nœud n8n pour Frappe HR (HRMS) : employés, congés, pointages, notes de frais, paie et recrutement",
+	"description": "n8n node for Frappe HR (HRMS): employees, leave, attendance, expense claims, salary slips and recruitment",
 	"license": "MIT",
 	"homepage": "https://github.com/tsnaketech/n8n-nodes-frappe-hrms#readme",
 	"keywords": [
@@ -14,7 +14,7 @@
 	],
 	"author": {
 		"name": "tsnaketech",
-		"email": "poubello@outlook.com",
+		"email": "snaketech@proton.me",
 		"url": "https://github.com/tsnaketech"
 	},
 	"repository": {
@@ -47,10 +47,10 @@
 		]
 	},
 	"devDependencies": {
-		"@n8n/node-cli": "*",
+		"@n8n/node-cli": "0.42.0",
 		"eslint": "9.39.5",
 		"prettier": "3.9.6",
-		"release-it": "21.0.0",
+		"release-it": "21.0.1",
 		"typescript": "5.9.3"
 	},
 	"peerDependencies": {
