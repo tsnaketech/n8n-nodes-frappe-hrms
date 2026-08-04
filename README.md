@@ -36,7 +36,7 @@ This package uses a single credential type, **Frappe API** (`frappeApi`) — the
 
 ### Generating API keys in Frappe
 
-1. In your Frappe site, open the user you want n8n to act as (`/app/user`).
+1. In your Frappe site, open the user you want n8n to act as (`/desk/user` on v16, `/app/user` up to v15).
 2. Scroll to **Settings > API Access** and click **Generate Keys**.
 3. Copy the **API Secret** — it is shown only once — and the **API Key** displayed on the user document.
 
@@ -46,7 +46,7 @@ The n8n node acts as that user, so it inherits that user's roles and permissions
 
 | Field      | Example                        | Notes                                                       |
 | ---------- | ------------------------------ | ----------------------------------------------------------- |
-| Site URL   | `https://my-site.frappe.cloud` | Site root. A trailing `/hr` or `/` is stripped automatically |
+| Site URL   | `https://my-site.frappe.cloud` | Site root. A trailing application path (`/desk/hrms`, `/app`, `/hrms`, `/crm`…) and the trailing `/` are stripped automatically |
 | API Key    | `a1b2c3d4e5f6g7h`              |                                                             |
 | API Secret | `s1e2c3r4e5t6`                 | Stored encrypted by n8n                                     |
 
@@ -436,7 +436,12 @@ The node outputs `{ "success": true, "doctype": "Job Opening", "name": "HR-OPN-2
 
 ## Compatibility
 
-Tested against n8n 1.x and Frappe Framework v15 with Frappe HR (`hrms`) and ERPNext. The node only uses the standard `/api/resource` REST endpoints plus `frappe.client.submit`, so it should work with any Frappe HR version that keeps the doctype names listed above.
+Tested against n8n 1.x and 2.x, on Frappe Framework v15 and v16 with Frappe HR (`hrms`) and ERPNext. The node only uses the standard `/api/resource` REST endpoints plus `frappe.client.submit`, so it should work with any Frappe HR version that keeps the doctype names listed above.
+
+Two v16 changes are handled by the node, with nothing to configure on your side:
+
+- the Desk moved from `/app` to `/desk`, and its URL now carries the workspace (`/desk/hrms`): both forms are accepted in the **Site URL** field;
+- `Expense Claim` gained the mandatory `currency` and `exchange_rate` fields. Frappe fetches the currency from the employee, and the node sends a rate of 1 when the field is left empty — correct as long as the claim is in the company currency. For any other currency, set **Exchange Rate**.
 
 ERPNext is required: `hrms/hooks.py` declares it as `required_apps`, and the `Employee` doctype comes from it.
 

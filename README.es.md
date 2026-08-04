@@ -36,7 +36,7 @@ Este paquete usa un único tipo de credencial, **Frappe API** (`frappeApi`) — 
 
 ### Generar las claves API en Frappe
 
-1. En tu sitio Frappe, abre el usuario en cuyo nombre debe actuar n8n (`/app/user`).
+1. En tu sitio Frappe, abre el usuario en cuyo nombre debe actuar n8n (`/desk/user` en v16, `/app/user` hasta v15).
 2. Baja hasta **Settings > API Access** y pulsa **Generate Keys**.
 3. Copia el **API Secret** — se muestra una sola vez — y la **API Key** visible en la ficha del usuario.
 
@@ -46,7 +46,7 @@ El nodo actúa como ese usuario, por lo que hereda sus roles y permisos. Si una 
 
 | Campo      | Ejemplo                          | Notas                                                            |
 | ---------- | -------------------------------- | ---------------------------------------------------------------- |
-| Site URL   | `https://mi-sitio.frappe.cloud`  | Raíz del sitio. Un `/hr` o `/` final se elimina automáticamente   |
+| Site URL   | `https://mi-sitio.frappe.cloud`  | Raíz del sitio. Una ruta de aplicación final (`/desk/hrms`, `/app`, `/hrms`, `/crm`…) y la `/` final se eliminan automáticamente |
 | API Key    | `a1b2c3d4e5f6g7h`                |                                                                  |
 | API Secret | `s1e2c3r4e5t6`                   | n8n lo almacena cifrado                                          |
 
@@ -436,7 +436,12 @@ El nodo devuelve `{ "success": true, "doctype": "Job Opening", "name": "HR-OPN-2
 
 ## Compatibilidad
 
-Probado con n8n 1.x y Frappe Framework v15 con Frappe HR (`hrms`) y ERPNext. El nodo solo usa los endpoints REST estándar `/api/resource` más `frappe.client.submit`, así que debería funcionar con cualquier versión de Frappe HR que conserve los nombres de doctype listados arriba.
+Probado con n8n 1.x y 2.x, sobre Frappe Framework v15 y v16 con Frappe HR (`hrms`) y ERPNext. El nodo solo usa los endpoints REST estándar `/api/resource` más `frappe.client.submit`, así que debería funcionar con cualquier versión de Frappe HR que conserve los nombres de doctype listados arriba.
+
+El nodo cubre dos cambios de la v16 sin que tengas que configurar nada:
+
+- el Desk pasó de `/app` a `/desk`, y su URL ahora lleva el espacio de trabajo (`/desk/hrms`): ambas formas se aceptan en el campo **Site URL**;
+- `Expense Claim` incorporó los campos obligatorios `currency` y `exchange_rate`. Frappe toma la moneda del empleado, y el nodo envía un tipo de 1 cuando el campo se deja vacío — correcto mientras el gasto esté en la moneda de la empresa. Para cualquier otra moneda, rellena **Exchange Rate**.
 
 ERPNext es obligatorio: `hrms/hooks.py` lo declara en `required_apps`, y el doctype `Employee` proviene de él.
 

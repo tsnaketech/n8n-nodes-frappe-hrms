@@ -9,14 +9,17 @@ Package de nœuds communautaires n8n, écrit en TypeScript, publié sous le nom
 [Frappe HR](https://github.com/frappe/hrms) (l'app `hrms`) via l'API REST générique de
 Frappe.
 
-Ce package fait partie d'une famille : `n8n-nodes-frappe-crm` et
-`n8n-nodes-frappe-helpdesk` sont livrés, un nœud LMS est prévu. Tous partagent le **même
-credential** `frappeApi` et la **même couche transport**, chacun dans sa propre copie —
+Ce package fait partie d'une famille de sept : le nœud générique `n8n-nodes-frappe` et les
+six nœuds applicatifs `n8n-nodes-frappe-crm`, `-helpdesk`, `-hrms`, `-insights`, `-learning`
+et `-lending`. Tous partagent le **même credential** `frappeApi` et la **même couche
+transport**, chacun dans sa propre copie —
 un import ne franchit pas la frontière d'un package npm. Voir
 [docs/CREDENTIALS.md](docs/CREDENTIALS.md) — c'est le document à lire avant de toucher au
 credential ou à `GenericFunctions.ts`.
 
-Le dépôt n'est pas initialisé sous git (`git init` reste à faire si besoin).
+Le dépôt est sous git, `origin` pointant sur
+`github.com/tsnaketech/n8n-nodes-frappe-hrms`. La CI et la publication npm se déclenchent
+depuis GitHub — voir `.github/workflows/`.
 
 ## Structure
 
@@ -26,7 +29,7 @@ nodes/FrappeHrms/GenericFunctions.ts       Transport Frappe (requête, paginatio
 nodes/FrappeHrms/types.ts                  Mapping resource n8n → doctype Frappe
 nodes/FrappeHrms/descriptions/             Une description par resource + CommonDescription
 credentials/FrappeApi.credentials.ts       Credential partagé (siteUrl + apiKey + apiSecret)
-icons/frappe-hr.svg                        Icône du nœud
+icons/frappe-hrms.svg                      Icône du nœud
 icons/frappe.svg, frappe.dark.svg          Icônes du credential (light/dark)
 docs/CREDENTIALS.md                        Architecture du credential partagé
 .github/workflows/ci.yml                   lint + build sur PR et push sur main
@@ -55,9 +58,13 @@ dans le dépôt et aucun runner de test configuré ; ne pas inventer `npm test`.
 changement mérite d'être vérifié, le faire via `npm run build` puis un chargement réel
 dans n8n (voir README, section « Development »).
 
-`npm run lint` sort en succès avec un warning résiduel,
-`icon-prefer-themed-variants` : l'icône du nœud est un fichier unique. C'est délibéré —
-le badge Frappe HR porte son propre fond vert et tient le contraste sur les deux thèmes.
+`npm run lint` sort en succès **sans warning**. Le seul qui apparaissait,
+`icon-prefer-themed-variants`, est désactivé ligne à ligne dans le nœud, avec sa
+justification en commentaire : l'icône est un fichier unique, et c'est délibéré — le badge
+Frappe HR porte son propre fond vert (`#06b58b`) et tient le contraste sur les deux thèmes.
+La règle vérifie seulement qu'`icon` n'est pas une chaîne littérale, sans jamais comparer
+les deux fichiers : la forme `{ light, dark }` pointant deux fois le même chemin la
+satisferait sans rien changer à l'écran. Ne pas réactiver la règle sans en discuter.
 
 ## Conventions de code
 
@@ -74,6 +81,16 @@ le badge Frappe HR porte son propre fond vert et tient le contraste sur les deux
   (`NodeConnectionTypes`, `NodeOperationError`) en import normal.
 - Les commentaires expliquent **pourquoi**, pas quoi — en particulier les particularités de
   Frappe (champs `fetch_from`, `permlevel`, `docstatus`) qui ne se devinent pas à la lecture.
+- **Langue.** Deux registres, à ne pas mélanger :
+  - _commentaires et noms de symboles_ : **anglais**, sans exception. Le code est publié sur
+    npm et lu par des contributeurs qui ne parlent pas français ;
+  - _chaînes vues par l'utilisateur_ (`description` des paramètres, messages de
+    `NodeOperationError`) : **français**, comme le reste des livrables du projet.
+
+  Trois `description` échappent à cette règle parce qu'ESLint les impose mot pour mot :
+  `node-param-description-boolean-without-whether` (tout booléen commence par « Whether »),
+  `node-param-description-wrong-for-return-all` et `node-param-description-wrong-for-limit`.
+  Ce ne sont pas des oublis de traduction : les traduire casse le lint.
 
 ## Patterns n8n à respecter
 
@@ -108,6 +125,31 @@ le badge Frappe HR porte son propre fond vert et tient le contraste sur les deux
   faite par `normalizeDates()` dans le nœud, à partir des sets `DATE_FIELDS` et
   `DATETIME_FIELDS` — **tout nouveau champ date doit y être ajouté**, sinon il part au
   format ISO et Frappe le rejette ou le décale.
+- **Champs remplis côté client** : certains champs `reqd` ne sont alimentés que par un
+  script client du Desk, jamais par le serveur. Un insert REST échoue alors sur un
+  « Value missing », sans que rien ne manque dans l'appel du point de vue de l'utilisateur.
+  Cas connu : `Expense Claim.exchange_rate` en v16, que le nœud force à 1 par défaut. Avant
+  de conclure qu'un champ est optionnel parce que le formulaire ne le demande pas, lire le
+  doctype (`frappe.client.get?doctype=DocType&name=…`) et chercher son script client.
+
+## Versions de Frappe
+
+Le nœud vise Frappe v15 **et** v16 avec un seul code. Les écarts à connaître :
+
+- **Desk** : `/app` en v15, `/desk` en v16, avec l'espace de travail dans l'URL
+  (`/desk/hrms`). Seul `normalizeSiteUrl()` s'en préoccupe, pour accepter l'URL que
+  l'utilisateur voit dans son navigateur. Aucun appel du nœud ne dépend du Desk : l'API vit
+  à la racine du site, sur `/api`, dans les deux versions.
+- **`Expense Claim`** : v16 y ajoute `currency` (récupéré depuis `employee.salary_currency`)
+  et `exchange_rate`, tous deux obligatoires. Les deux sont exposés dans les champs
+  additionnels ; le nœud n'envoie de valeur par défaut que pour `exchange_rate`.
+- L'API REST v1 (`/api/resource`, `/api/method`) reste en place en v16 et n'est pas
+  dépréciée : `/api/resource` et `/api/v1/resource` pointent vers les mêmes règles de
+  routage. Ne pas migrer vers `/api/v2` — non pas parce qu'elle manquerait en v15
+  (`frappe/api/v2.py` y est aussi), mais parce qu'elle **n'y fait pas la même chose** : en 15
+  `document_list` retraduit `limit`/`start` et délègue à `frappe.client.get_list`, en 16
+  c'est une réécriture sur `frappe.qb.get_query` avec `has_next_page`. Un seul transport pour
+  les deux versions impose donc la v1.
 
 ## Documentation
 
@@ -117,6 +159,17 @@ l'utilisateur (nouvelle opération, nouveau credential, prérequis) doit être r
 
 `docs/CREDENTIALS.md` est écrit pour toute la famille de nœuds Frappe : y ajouter un nœud
 consommateur quand il arrive, et ne jamais y dupliquer le contenu du README.
+
+## GitHub Actions
+
+Les workflows GitHub Actions doivent toujours utiliser des versions existantes et stables
+des actions officielles. **Ne jamais inventer ou supposer une version majeure.**
+
+- Vérifier la dernière version disponible avant de modifier un workflow.
+- Préférer un tag de version (`@v4`, `@v5`, etc.) ou, idéalement, un commit SHA lorsque la
+  reproductibilité ou la sécurité est importante.
+- Si la version n'est pas certaine, consulter le dépôt officiel de l'action plutôt que de
+  la deviner.
 
 ## Publication
 

@@ -36,7 +36,7 @@ Ce package utilise un seul type de credential, **Frappe API** (`frappeApi`) — 
 
 ### Générer les clés API dans Frappe
 
-1. Sur votre site Frappe, ouvrez l'utilisateur au nom duquel n8n doit agir (`/app/user`).
+1. Sur votre site Frappe, ouvrez l'utilisateur au nom duquel n8n doit agir (`/desk/user` en v16, `/app/user` jusqu'en v15).
 2. Descendez jusqu'à **Settings > API Access** et cliquez sur **Generate Keys**.
 3. Copiez l'**API Secret** — affiché une seule fois — et l'**API Key** visible sur la fiche utilisateur.
 
@@ -46,7 +46,7 @@ Le nœud agit en tant que cet utilisateur : il hérite de ses rôles et permissi
 
 | Champ      | Exemple                         | Remarques                                                          |
 | ---------- | ------------------------------- | ------------------------------------------------------------------ |
-| Site URL   | `https://mon-site.frappe.cloud` | Racine du site. Un `/hr` ou un `/` final est retiré automatiquement |
+| Site URL   | `https://mon-site.frappe.cloud` | Racine du site. Un chemin d'application final (`/desk/hrms`, `/app`, `/hrms`, `/crm`…) et le `/` final sont retirés automatiquement |
 | API Key    | `a1b2c3d4e5f6g7h`               |                                                                    |
 | API Secret | `s1e2c3r4e5t6`                  | Stocké chiffré par n8n                                             |
 
@@ -436,7 +436,12 @@ Le nœud renvoie `{ "success": true, "doctype": "Job Opening", "name": "HR-OPN-2
 
 ## Compatibilité
 
-Testé avec n8n 1.x et Frappe Framework v15 avec Frappe HR (`hrms`) et ERPNext. Le nœud n'utilise que les endpoints REST standard `/api/resource` plus `frappe.client.submit` : il devrait fonctionner avec toute version de Frappe HR conservant les noms de doctype listés ci-dessus.
+Testé avec n8n 1.x et 2.x, sur Frappe Framework v15 et v16 avec Frappe HR (`hrms`) et ERPNext. Le nœud n'utilise que les endpoints REST standard `/api/resource` plus `frappe.client.submit` : il devrait fonctionner avec toute version de Frappe HR conservant les noms de doctype listés ci-dessus.
+
+Deux différences apportées par la v16 sont prises en charge par le nœud, sans réglage de votre part :
+
+- le Desk est passé de `/app` à `/desk`, et son URL porte désormais l'espace de travail (`/desk/hrms`) : les deux formes sont acceptées dans le champ **Site URL** ;
+- `Expense Claim` a gagné les champs obligatoires `currency` et `exchange_rate`. Frappe récupère la devise depuis l'employé, et le nœud envoie un taux de 1 quand le champ est laissé vide — correct tant que la note de frais est dans la devise de la société. Pour une autre devise, renseignez **Exchange Rate**.
 
 ERPNext est requis : `hrms/hooks.py` le déclare en `required_apps`, et le doctype `Employee` en provient.
 
