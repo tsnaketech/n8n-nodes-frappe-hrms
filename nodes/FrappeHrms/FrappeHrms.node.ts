@@ -47,7 +47,7 @@ const DATETIME_FIELDS = new Set(['in_time', 'out_time', 'posted_on']);
 const NAIVE_DATE_PATTERN = /^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2})(?::(\d{2}))?)?$/;
 
 /**
- * Fields exposed at the top level, outside the « Additional Fields » collection, because
+ * Fields exposed at the top level, outside the "Additional Fields" collection, because
  * the doctype marks them `reqd`. Kept here rather than in the descriptions so that the
  * execute loop has a single place to read them from.
  */
@@ -122,9 +122,9 @@ function normalizeDates(fields: IDataObject, timeZone: string): IDataObject {
 }
 
 /**
- * Turns the « Expenses » fixed collection into the `expenses` child table of an Expense
+ * Turns the "Expenses" fixed collection into the `expenses` child table of an Expense
  * Claim. Frappe rejects a claim whose table is empty, so an empty collection is dropped
- * rather than sent as `[]` — that keeps « Update » from wiping the existing lines when the
+ * rather than sent as `[]` — that keeps "Update" from wiping the existing lines when the
  * user did not touch them.
  */
 function buildExpenseRows(raw: IDataObject, timeZone: string): IDataObject[] | undefined {
@@ -151,17 +151,17 @@ function parseJsonParameter(
 	} catch {
 		throw new NodeOperationError(
 			context.getNode(),
-			`Le paramètre « ${parameterName} » n'est pas du JSON valide : ${value}`,
+			`Parameter "${parameterName}" is not valid JSON: ${value}`,
 			{
 				itemIndex,
 				description:
-					'Attendu : un objet {"champ": "valeur"} ou un tableau [["champ","opérateur","valeur"]].',
+					'Expected an object {"field": "value"} or an array [["field","operator","value"]].',
 			},
 		);
 	}
 }
 
-/** Accepte « name,status » comme ["name","status"]. */
+/** Accepts "name,status" as ["name","status"]. */
 function parseFieldList(value: string): string[] {
 	const trimmed = value.trim();
 	if (trimmed.startsWith('[')) {
@@ -179,16 +179,19 @@ export class FrappeHrms implements INodeType {
 		name: 'frappeHrms',
 		// Frappe HR logo: opaque green #06b58b badge with the glyph knocked out in white.
 		// A single file, hence the same green on both themes, by choice: the badge carries its
-		// own background and holds contrast on light as well as dark. This leaves the
-		// `icon-prefer-themed-variants` warning (non-blocking, lint exits 0); the
-		// { light, dark } form requires two distinct file paths, hence a different tint on one
-		// of the themes.
-		icon: 'file:../../icons/frappe-hr.svg',
+		// own background and holds contrast on light as well as dark.
+		//
+		// `icon-prefer-themed-variants` is silenced rather than worked around: the rule only
+		// checks that `icon` is not a string literal, it never compares the two files, so the
+		// { light, dark } form with the same path twice would satisfy it without changing a
+		// single pixel on screen.
+		// eslint-disable-next-line @n8n/community-nodes/icon-prefer-themed-variants
+		icon: 'file:../../icons/frappe-hrms.svg',
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		description:
-			'Lire et écrire les employés, congés, pointages, notes de frais et recrutements de Frappe HR',
+			'Read and write Frappe HR employees, leave, attendance, expense claims and recruitment',
 		defaults: {
 			name: 'Frappe HRMS',
 		},
@@ -263,6 +266,16 @@ export class FrappeHrms implements INodeType {
 							timeZone,
 						);
 						if (expenses !== undefined) body.expenses = expenses;
+
+						// Frappe HR v16 made `exchange_rate` mandatory on Expense Claim, but only the
+						// Desk form fills it — through a client script that reacts to `currency`. A
+						// plain REST insert therefore fails with "Value missing for Expense Claim:
+						// Exchange Rate". 1 is the right rate whenever the claim is in the company
+						// currency, which is the default since `currency` is fetched from the
+						// employee. Any other currency needs the field set explicitly.
+						if (operation === 'create' && body.exchange_rate === undefined) {
+							body.exchange_rate = 1;
+						}
 					}
 
 					if (operation === 'create') {
@@ -328,8 +341,8 @@ export class FrappeHrms implements INodeType {
 						throw new NodeOperationError(
 							this.getNode(),
 							docstatus === 1
-								? `La demande ${documentId} est déjà soumise : son statut ne peut plus être modifié`
-								: `La demande ${documentId} est annulée : son statut ne peut plus être modifié`,
+								? `Request ${documentId} is already submitted: its status can no longer be changed`
+								: `Request ${documentId} is cancelled: its status can no longer be changed`,
 							{
 								itemIndex: i,
 								description:
@@ -402,7 +415,7 @@ export class FrappeHrms implements INodeType {
 				} else {
 					throw new NodeOperationError(
 						this.getNode(),
-						`L'opération « ${operation} » n'est pas supportée`,
+						`The operation "${operation}" is not supported`,
 						{ itemIndex: i },
 					);
 				}

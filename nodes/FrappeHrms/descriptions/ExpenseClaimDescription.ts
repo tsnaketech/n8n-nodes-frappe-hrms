@@ -16,7 +16,7 @@ const expenseClaimFields: INodeProperties[] = [
 		],
 		default: 'Draft',
 		description:
-			"Décision de l'approbateur. Distincte de « status », que Frappe calcule à partir du docstatus et du paiement.",
+			'The approver decision. Distinct from "status", which Frappe computes from the docstatus and the payment.',
 	},
 	{
 		displayName: 'Company',
@@ -24,7 +24,7 @@ const expenseClaimFields: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		description:
-			"Lien vers un enregistrement du doctype Company. Frappe le déduit de l'employé lorsqu'il est laissé vide.",
+			'Link to a Company doctype record. Frappe infers it from the employee when left empty.',
 	},
 	{
 		displayName: 'Cost Center',
@@ -34,18 +34,34 @@ const expenseClaimFields: INodeProperties[] = [
 		description: 'Lien vers un enregistrement du doctype Cost Center',
 	},
 	{
+		displayName: 'Currency',
+		name: 'currency',
+		type: 'string',
+		default: '',
+		description:
+			'Link to a Currency doctype record. Mandatory since Frappe HR v16, but Frappe reads it from the employee salary_currency: leave it empty unless the claim is in another currency.',
+	},
+	{
 		displayName: 'Employee',
 		name: 'employee',
 		type: 'string',
 		default: '',
-		description: 'Champ « name » de l\'employé, par ex. HR-EMP-00001.',
+		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
 	},
 	{
 		displayName: 'Expense Approver',
 		name: 'expense_approver',
 		type: 'string',
 		default: '',
-		description: "Email de l'utilisateur chargé d'approuver la note de frais",
+		description: 'Email of the user responsible for approving the expense claim',
+	},
+	{
+		displayName: 'Exchange Rate',
+		name: 'exchange_rate',
+		type: 'number',
+		default: 1,
+		description:
+			'Conversion rate to the company currency. Mandatory since Frappe HR v16: the node sends 1 when the field is left empty, which is the correct rate as long as the claim is in the company currency. Set it for any other currency.',
 	},
 	{
 		displayName: 'Is Paid',
@@ -106,7 +122,7 @@ const expensesField: INodeProperties = {
 	default: {},
 	displayOptions: { show: { resource: ['expenseClaim'], operation: ['create', 'update'] } },
 	description:
-		'Lignes de la note de frais. Au moins une ligne est obligatoire à la création. Sur « Update », les lignes fournies remplacent la table existante.',
+		'Expense claim rows. At least one row is mandatory on creation. On "Update", the rows provided replace the existing table.',
 	options: [
 		{
 			name: 'expense',
@@ -118,7 +134,7 @@ const expensesField: INodeProperties = {
 					type: 'number',
 					default: 0,
 					required: true,
-					description: 'Montant réclamé, dans la devise de la note de frais',
+					description: 'Claimed amount, in the currency of the expense claim',
 				},
 				{
 					displayName: 'Cost Center',
@@ -133,14 +149,13 @@ const expensesField: INodeProperties = {
 					type: 'string',
 					typeOptions: { rows: 2 },
 					default: '',
-					description: 'Détail de la dépense',
+					description: 'Expense details',
 				},
 				{
 					displayName: 'Expense Date',
 					name: 'expense_date',
 					type: 'dateTime',
 					default: '',
-					description: 'Date de la dépense',
 				},
 				{
 					displayName: 'Expense Type',
@@ -156,7 +171,7 @@ const expensesField: INodeProperties = {
 					type: 'number',
 					default: 0,
 					description:
-						'Montant validé par l\'approbateur. Frappe le recopie du montant réclamé si le champ est vide.',
+						'Amount sanctioned by the approver. Frappe copies it from the claimed amount when the field is empty.',
 				},
 			],
 		},
@@ -172,11 +187,11 @@ export const expenseClaimDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['expenseClaim'], operation: ['create'] } },
-		description: 'Champ « name » de l\'employé, par ex. HR-EMP-00001.',
+		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
 	},
 	documentIdField(
 		'expenseClaim',
-		'Champ « name » de l\'enregistrement Frappe. Pour une note de frais il ressemble à HR-EXP-2026-00001.',
+		'The Frappe record "name" field. For an expense claim it looks like HR-EXP-2026-00001.',
 	),
 	expensesField,
 	{

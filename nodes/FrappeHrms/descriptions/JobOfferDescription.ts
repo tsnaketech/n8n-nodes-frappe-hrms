@@ -28,14 +28,14 @@ const jobOfferFields: INodeProperties[] = [
 		name: 'job_applicant',
 		type: 'string',
 		default: '',
-		description: 'Champ « name » du candidat, par ex. HR-APP-2026-00001.',
+		description: 'The "name" field of the applicant, e.g. HR-APP-2026-00001',
 	},
 	{
 		displayName: 'Offer Date',
 		name: 'offer_date',
 		type: 'dateTime',
 		default: '',
-		description: "Date d'émission de la proposition",
+		description: 'Date the offer was issued',
 	},
 	{
 		displayName: 'Select Terms',
@@ -43,7 +43,7 @@ const jobOfferFields: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		description:
-			'Lien vers un enregistrement du doctype Terms and Conditions, dont le contenu remplit « Terms »',
+			'Link to a Terms and Conditions doctype record, whose content fills "Terms"',
 	},
 	{
 		displayName: 'Status',
@@ -56,7 +56,7 @@ const jobOfferFields: INodeProperties[] = [
 			{ name: 'Rejected', value: 'Rejected' },
 		],
 		default: 'Awaiting Response',
-		description: 'Réponse du candidat à la proposition',
+		description: 'Applicant response to the offer',
 	},
 	{
 		displayName: 'Terms',
@@ -79,7 +79,7 @@ export const jobOfferDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['jobOffer'], operation: ['create'] } },
-		description: 'Champ « name » du candidat, par ex. HR-APP-2026-00001.',
+		description: 'The "name" field of the applicant, e.g. HR-APP-2026-00001',
 	},
 	{
 		displayName: 'Offer Date',
@@ -88,7 +88,7 @@ export const jobOfferDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['jobOffer'], operation: ['create'] } },
-		description: "Date d'émission de la proposition",
+		description: 'Date the offer was issued',
 	},
 	{
 		displayName: 'Designation',
@@ -110,7 +110,7 @@ export const jobOfferDescription: INodeProperties[] = [
 	},
 	documentIdField(
 		'jobOffer',
-		'Champ « name » de l\'enregistrement Frappe. Pour une proposition il ressemble à HR-OFF-2026-00001.',
+		'The Frappe record "name" field. For a job offer it looks like HR-OFF-2026-00001.',
 	),
 	{
 		displayName: 'Additional Fields',

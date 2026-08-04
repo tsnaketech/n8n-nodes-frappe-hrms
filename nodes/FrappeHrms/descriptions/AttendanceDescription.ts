@@ -25,7 +25,7 @@ const attendanceFields: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		description:
-			"Lien vers un enregistrement du doctype Company. Frappe le déduit de l'employé lorsqu'il est laissé vide.",
+			'Link to a Company doctype record. Frappe infers it from the employee when left empty.',
 	},
 	{
 		displayName: 'Early Exit',
@@ -39,7 +39,7 @@ const attendanceFields: INodeProperties[] = [
 		name: 'employee',
 		type: 'string',
 		default: '',
-		description: 'Champ « name » de l\'employé, par ex. HR-EMP-00001.',
+		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
 	},
 	{
 		displayName: 'Half Day Status',
@@ -50,14 +50,14 @@ const attendanceFields: INodeProperties[] = [
 			{ name: 'Present', value: 'Present' },
 		],
 		default: 'Present',
-		description: 'Sens de la demi-journée, utilisé lorsque le statut vaut Half Day',
+		description: 'Which half of the day, used when the status is Half Day',
 	},
 	{
 		displayName: 'In Time',
 		name: 'in_time',
 		type: 'dateTime',
 		default: '',
-		description: "Horodatage d'arrivée",
+		description: 'Check-in timestamp',
 	},
 	{
 		displayName: 'Late Entry',
@@ -71,7 +71,7 @@ const attendanceFields: INodeProperties[] = [
 		name: 'leave_application',
 		type: 'string',
 		default: '',
-		description: 'Champ « name » de la demande de congé à l\'origine du pointage, par ex. HR-LAP-2026-00001.',
+		description: 'The "name" field of the leave application behind this attendance record, e.g. HR-LAP-2026-00001',
 	},
 	{
 		displayName: 'Leave Type',
@@ -85,7 +85,7 @@ const attendanceFields: INodeProperties[] = [
 		name: 'out_time',
 		type: 'dateTime',
 		default: '',
-		description: 'Horodatage de départ',
+		description: 'Check-out timestamp',
 	},
 	{
 		displayName: 'Shift',
@@ -100,14 +100,14 @@ const attendanceFields: INodeProperties[] = [
 		type: 'options',
 		options: STATUS_OPTIONS,
 		default: 'Present',
-		description: 'Statut de présence',
+		description: 'Attendance status',
 	},
 	{
 		displayName: 'Working Hours',
 		name: 'working_hours',
 		type: 'number',
 		default: 0,
-		description: 'Nombre d\'heures travaillées',
+		description: 'Number of hours worked',
 	},
 ];
 
@@ -122,7 +122,7 @@ export const attendanceDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['attendance'], operation: ['create'] } },
-		description: 'Champ « name » de l\'employé, par ex. HR-EMP-00001.',
+		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
 	},
 	{
 		displayName: 'Attendance Date',
@@ -141,11 +141,11 @@ export const attendanceDescription: INodeProperties[] = [
 		default: 'Present',
 		required: true,
 		displayOptions: { show: { resource: ['attendance'], operation: ['create'] } },
-		description: 'Statut de présence',
+		description: 'Attendance status',
 	},
 	documentIdField(
 		'attendance',
-		'Champ « name » de l\'enregistrement Frappe. Pour un pointage il ressemble à HR-ATT-2026-00001.',
+		'The Frappe record "name" field. For an attendance record it looks like HR-ATT-2026-00001.',
 	),
 	{
 		displayName: 'Additional Fields',

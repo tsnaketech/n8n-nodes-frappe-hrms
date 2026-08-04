@@ -53,7 +53,7 @@ const jobApplicantFields: INodeProperties[] = [
 		name: 'employee_referral',
 		type: 'string',
 		default: '',
-		description: 'Champ « name » de la cooptation à l\'origine de la candidature',
+		description: 'The "name" field of the employee referral behind the application',
 	},
 	{
 		displayName: 'Job Opening',
@@ -61,28 +61,28 @@ const jobApplicantFields: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		description:
-			'Champ « name » de l\'offre visée, par ex. HR-OPN-2026-0001. Le champ Frappe s\'appelle job_title mais pointe bien sur le doctype Job Opening.',
+			'The "name" field of the targeted opening, e.g. HR-OPN-2026-0001. The Frappe field is called job_title but does point at the Job Opening doctype.',
 	},
 	{
 		displayName: 'Lower Range',
 		name: 'lower_range',
 		type: 'number',
 		default: 0,
-		description: 'Bas de la prétention salariale',
+		description: 'Lower bound of the expected salary',
 	},
 	{
 		displayName: 'Phone Number',
 		name: 'phone_number',
 		type: 'string',
 		default: '',
-		description: 'Numéro de téléphone du candidat',
+		description: 'Applicant phone number',
 	},
 	{
 		displayName: 'Resume Link',
 		name: 'resume_link',
 		type: 'string',
 		default: '',
-		description: 'URL du CV hébergé ailleurs, par ex. un profil LinkedIn.',
+		description: 'URL of a resume hosted elsewhere, e.g. a LinkedIn profile',
 	},
 	{
 		displayName: 'Source',
@@ -96,7 +96,7 @@ const jobApplicantFields: INodeProperties[] = [
 		name: 'source_name',
 		type: 'string',
 		default: '',
-		description: "Champ « name » de l'employé référent lorsque la source est une cooptation",
+		description: 'The "name" field of the referring employee when the source is a referral',
 	},
 	{
 		displayName: 'Status',
@@ -118,7 +118,7 @@ const jobApplicantFields: INodeProperties[] = [
 		name: 'upper_range',
 		type: 'number',
 		default: 0,
-		description: 'Haut de la prétention salariale',
+		description: 'Upper bound of the expected salary',
 	},
 ];
 
@@ -147,7 +147,7 @@ export const jobApplicantDescription: INodeProperties[] = [
 	},
 	documentIdField(
 		'jobApplicant',
-		'Champ « name » de l\'enregistrement Frappe. Pour un candidat il ressemble à HR-APP-2026-00001.',
+		'The Frappe record "name" field. For an applicant it looks like HR-APP-2026-00001.',
 	),
 	{
 		displayName: 'Additional Fields',

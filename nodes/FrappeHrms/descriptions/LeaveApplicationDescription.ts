@@ -35,7 +35,7 @@ const leaveApplicationFields: INodeProperties[] = [
 		name: 'employee',
 		type: 'string',
 		default: '',
-		description: 'Champ « name » de l\'employé, par ex. HR-EMP-00001.',
+		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
 	},
 	{
 		displayName: 'Follow via Email',
@@ -49,7 +49,7 @@ const leaveApplicationFields: INodeProperties[] = [
 		name: 'from_date',
 		type: 'dateTime',
 		default: '',
-		description: 'Premier jour de congé',
+		description: 'First day of leave',
 	},
 	{
 		displayName: 'Half Day',
@@ -63,14 +63,14 @@ const leaveApplicationFields: INodeProperties[] = [
 		name: 'half_day_date',
 		type: 'dateTime',
 		default: '',
-		description: 'Jour concerné par la demi-journée, requis lorsque « Half Day » est actif',
+		description: 'Day the half day falls on, required when "Half Day" is on',
 	},
 	{
 		displayName: 'Leave Approver',
 		name: 'leave_approver',
 		type: 'string',
 		default: '',
-		description: "Email de l'utilisateur chargé d'approuver la demande",
+		description: 'Email of the user responsible for approving the application',
 	},
 	{
 		displayName: 'Leave Type',
@@ -84,7 +84,7 @@ const leaveApplicationFields: INodeProperties[] = [
 		name: 'posting_date',
 		type: 'dateTime',
 		default: '',
-		description: 'Date de dépôt de la demande. Frappe utilise la date du jour si le champ est vide.',
+		description: 'Date the application was filed. Frappe uses today when the field is empty.',
 	},
 	{
 		displayName: 'Status',
@@ -93,14 +93,14 @@ const leaveApplicationFields: INodeProperties[] = [
 		options: STATUS_OPTIONS,
 		default: 'Open',
 		description:
-			'Statut de la demande. Le champ est en permlevel 1 dans Frappe : il faut un rôle habilité (Leave Approver, HR Manager) pour l\'écrire.',
+			'Application status. The field sits at permlevel 1 in Frappe: an authorised role (Leave Approver, HR Manager) is required to write it.',
 	},
 	{
 		displayName: 'To Date',
 		name: 'to_date',
 		type: 'dateTime',
 		default: '',
-		description: 'Dernier jour de congé',
+		description: 'Last day of leave',
 	},
 ];
 
@@ -115,7 +115,7 @@ export const leaveApplicationDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['leaveApplication'], operation: ['create'] } },
-		description: 'Champ « name » de l\'employé, par ex. HR-EMP-00001.',
+		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
 	},
 	{
 		displayName: 'Leave Type',
@@ -133,7 +133,7 @@ export const leaveApplicationDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['leaveApplication'], operation: ['create'] } },
-		description: 'Premier jour de congé',
+		description: 'First day of leave',
 	},
 	{
 		displayName: 'To Date',
@@ -142,11 +142,11 @@ export const leaveApplicationDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['leaveApplication'], operation: ['create'] } },
-		description: 'Dernier jour de congé',
+		description: 'Last day of leave',
 	},
 	documentIdField(
 		'leaveApplication',
-		'Champ « name » de l\'enregistrement Frappe. Pour une demande de congé il ressemble à HR-LAP-2026-00001.',
+		'The Frappe record "name" field. For a leave application it looks like HR-LAP-2026-00001.',
 		['get', 'update', 'delete', 'approve', 'reject'],
 	),
 	{
@@ -183,7 +183,7 @@ export const leaveApplicationDescription: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description:
-					"Email de l'approbateur à inscrire sur la demande avant de la soumettre. Laisser vide conserve celui déjà présent.",
+					'Email of the approver to set on the application before submitting it. Leaving it empty keeps the one already there.',
 			},
 			{
 				displayName: 'Submit',

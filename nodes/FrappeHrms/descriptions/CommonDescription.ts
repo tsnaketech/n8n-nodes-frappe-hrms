@@ -12,7 +12,7 @@ import type { INodeProperties } from 'n8n-workflow';
 export const DOCUMENT_OPERATIONS = ['get', 'update', 'delete'];
 
 /**
- * Removes fields from a shared list. Used to build « Additional Fields » (create) out of
+ * Removes fields from a shared list. Used to build "Additional Fields" (create) out of
  * the full list, excluding the fields already exposed at the top level because they are
  * required.
  */
@@ -32,7 +32,7 @@ export function operationsFor(resource: string, singular: string): INodeProperti
 			{
 				name: 'Create',
 				value: 'create',
-				description: `Créer un(e) ${singular}`,
+				description: `Create a new ${singular}`,
 				action: `Create a ${singular}`,
 			},
 			{
@@ -44,19 +44,19 @@ export function operationsFor(resource: string, singular: string): INodeProperti
 			{
 				name: 'Get',
 				value: 'get',
-				description: `Récupérer un(e) ${singular}`,
+				description: `Retrieve a single ${singular}`,
 				action: `Get a ${singular}`,
 			},
 			{
 				name: 'Get Many',
 				value: 'getAll',
-				description: `Récupérer plusieurs ${singular}s`,
+				description: `Retrieve many ${singular}s`,
 				action: `Get many ${singular}s`,
 			},
 			{
 				name: 'Update',
 				value: 'update',
-				description: `Mettre à jour un(e) ${singular}`,
+				description: `Update an existing ${singular}`,
 				action: `Update a ${singular}`,
 			},
 		],
@@ -85,7 +85,7 @@ export function approvalOperationsFor(resource: string, singular: string): INode
 			{
 				name: 'Create',
 				value: 'create',
-				description: `Créer un(e) ${singular}`,
+				description: `Create a new ${singular}`,
 				action: `Create a ${singular}`,
 			},
 			{
@@ -97,13 +97,13 @@ export function approvalOperationsFor(resource: string, singular: string): INode
 			{
 				name: 'Get',
 				value: 'get',
-				description: `Récupérer un(e) ${singular}`,
+				description: `Retrieve a single ${singular}`,
 				action: `Get a ${singular}`,
 			},
 			{
 				name: 'Get Many',
 				value: 'getAll',
-				description: `Récupérer plusieurs ${singular}s`,
+				description: `Retrieve many ${singular}s`,
 				action: `Get many ${singular}s`,
 			},
 			{
@@ -115,7 +115,7 @@ export function approvalOperationsFor(resource: string, singular: string): INode
 			{
 				name: 'Update',
 				value: 'update',
-				description: `Mettre à jour un(e) ${singular}`,
+				description: `Update an existing ${singular}`,
 				action: `Update a ${singular}`,
 			},
 		],
@@ -138,13 +138,13 @@ export function readOperationsFor(resource: string, singular: string): INodeProp
 			{
 				name: 'Get',
 				value: 'get',
-				description: `Récupérer un(e) ${singular}`,
+				description: `Retrieve a single ${singular}`,
 				action: `Get a ${singular}`,
 			},
 			{
 				name: 'Get Many',
 				value: 'getAll',
-				description: `Récupérer plusieurs ${singular}s`,
+				description: `Retrieve many ${singular}s`,
 				action: `Get many ${singular}s`,
 			},
 		],
@@ -173,7 +173,7 @@ export function documentIdField(
 }
 
 /**
- * Pagination and read options for « Get Many ».
+ * Pagination and read options for "Get Many".
  *
  * `returnAll` triggers automatic pagination through `limit_start`; otherwise `limit` is
  * sent as-is in `limit_page_length`.
@@ -214,7 +214,7 @@ export function getManyFields(resource: string): INodeProperties[] {
 					default: '',
 					placeholder: 'name,employee_name,status',
 					description:
-						'Liste des champs à retourner, séparés par des virgules. Accepte aussi un tableau JSON. Par défaut Frappe ne renvoie que « name ».',
+						'Comma-separated list of fields to return. A JSON array is accepted too. Frappe only returns "name" by default.',
 				},
 				{
 					displayName: 'Filters (JSON)',
@@ -223,7 +223,7 @@ export function getManyFields(resource: string): INodeProperties[] {
 					default: '',
 					placeholder: '{"status": "Open"}',
 					description:
-						'Filtres au format Frappe : objet {"champ": "valeur"} ou tableau [["champ","opérateur","valeur"]], par exemple [["from_date",">=","2026-01-01"]]',
+						'Filters in Frappe format: an object {"field": "value"} or an array [["field","operator","value"]], for example [["from_date",">=","2026-01-01"]]',
 				},
 				{
 					displayName: 'Offset',
@@ -232,7 +232,7 @@ export function getManyFields(resource: string): INodeProperties[] {
 					default: 0,
 					typeOptions: { minValue: 0 },
 					description:
-						'Nombre d\'enregistrements à ignorer (limit_start). Ignoré lorsque « Return All » est actif.',
+						'Number of records to skip (limit_start). Ignored when "Return All" is on.',
 				},
 				{
 					displayName: 'Or Filters (JSON)',
@@ -240,14 +240,14 @@ export function getManyFields(resource: string): INodeProperties[] {
 					type: 'json',
 					default: '',
 					placeholder: '[["status","=","Open"],["status","=","Approved"]]',
-					description: 'Filtres combinés en OU, même format que « Filters »',
+					description: 'Filters combined with OR, same format as "Filters"',
 				},
 				{
 					displayName: 'Sort Field',
 					name: 'sortField',
 					type: 'string',
 					default: 'modified',
-					description: 'Champ utilisé pour le tri (order_by)',
+					description: 'Field to sort on (order_by)',
 				},
 				{
 					displayName: 'Sort Order',

@@ -14,7 +14,7 @@ export const salarySlipDescription: INodeProperties[] = [
 	readOperationsFor('salarySlip', 'salary slip'),
 	documentIdField(
 		'salarySlip',
-		'Champ « name » de l\'enregistrement Frappe. Pour un bulletin il ressemble à Sal Slip/HR-EMP-00001/00001.',
+		'The Frappe record "name" field. For a salary slip it looks like Sal Slip/HR-EMP-00001/00001.',
 		['get'],
 	),
 	...getManyFields('salarySlip'),

@@ -6,7 +6,7 @@ import { documentIdField, getManyFields, omitFields, operationsFor } from './Com
  * `Employee` fields offered on create as well as update.
  *
  * The doctype belongs to ERPNext (`erpnext/setup/doctype/employee`), not to HRMS. The
- * fields marked « custom field HRMS » below are added by `hrms/setup.py` when Frappe HR is
+ * fields marked "custom field HRMS" below are added by `hrms/setup.py` when Frappe HR is
  * installed — they do not exist on a bare ERPNext site.
  *
  * Read-only fields are left out on purpose: `employee_name` is recomputed from the name
@@ -25,7 +25,7 @@ const employeeFields: INodeProperties[] = [
 		name: 'cell_number',
 		type: 'string',
 		default: '',
-		description: 'Numéro de mobile personnel',
+		description: 'Personal mobile number',
 	},
 	{
 		displayName: 'Company',
@@ -54,14 +54,14 @@ const employeeFields: INodeProperties[] = [
 		name: 'date_of_joining',
 		type: 'dateTime',
 		default: '',
-		description: "Date d'entrée dans l'entreprise",
+		description: 'Date the employee joined the company',
 	},
 	{
 		displayName: 'Date of Retirement',
 		name: 'date_of_retirement',
 		type: 'dateTime',
 		default: '',
-		description: 'Date de départ à la retraite',
+		description: 'Retirement date',
 	},
 	{
 		displayName: 'Default Shift',
@@ -82,14 +82,14 @@ const employeeFields: INodeProperties[] = [
 		name: 'designation',
 		type: 'string',
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Designation (intitulé de poste)',
+		description: 'Link to a Designation doctype record (job title)',
 	},
 	{
 		displayName: 'Employee Number',
 		name: 'employee_number',
 		type: 'string',
 		default: '',
-		description: "Matricule interne, distinct du champ « name » généré par Frappe",
+		description: 'Internal employee number, distinct from the "name" field Frappe generates',
 	},
 	{
 		displayName: 'Employment Type',
@@ -104,14 +104,14 @@ const employeeFields: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		description:
-			"Email de l'utilisateur habilité à valider les notes de frais (custom field HRMS)",
+			'Email of the user allowed to approve expense claims (HRMS custom field)',
 	},
 	{
 		displayName: 'First Name',
 		name: 'first_name',
 		type: 'string',
 		default: '',
-		description: "Prénom de l'employé",
+		description: 'Employee first name',
 	},
 	{
 		displayName: 'Gender',
@@ -133,7 +133,7 @@ const employeeFields: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		description:
-			'Lien vers un enregistrement du doctype Holiday List, utilisé pour le calcul des congés',
+			'Link to a Holiday List doctype record, used when computing leave',
 	},
 	{
 		displayName: 'Last Name',
@@ -148,14 +148,13 @@ const employeeFields: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		description:
-			"Email de l'utilisateur habilité à valider les demandes de congé (custom field HRMS)",
+			'Email of the user allowed to approve leave applications (HRMS custom field)',
 	},
 	{
 		displayName: 'Middle Name',
 		name: 'middle_name',
 		type: 'string',
 		default: '',
-		description: 'Deuxième prénom',
 	},
 	{
 		displayName: 'Personal Email',
@@ -170,14 +169,14 @@ const employeeFields: INodeProperties[] = [
 		name: 'relieving_date',
 		type: 'dateTime',
 		default: '',
-		description: "Date de sortie des effectifs. Requise par Frappe pour passer le statut à Left.",
+		description: 'Date the employee left. Frappe requires it to move the status to Left.',
 	},
 	{
 		displayName: 'Reports To',
 		name: 'reports_to',
 		type: 'string',
 		default: '',
-		description: 'Champ « name » de l\'employé responsable, par ex. HR-EMP-00002.',
+		description: 'The "name" field of the reporting employee, e.g. HR-EMP-00002',
 	},
 	{
 		displayName: 'Status',
@@ -190,14 +189,14 @@ const employeeFields: INodeProperties[] = [
 			{ name: 'Suspended', value: 'Suspended' },
 		],
 		default: 'Active',
-		description: "Statut administratif de l'employé",
+		description: 'Employment status',
 	},
 	{
 		displayName: 'User ID',
 		name: 'user_id',
 		type: 'string',
 		default: '',
-		description: "Email du compte utilisateur Frappe associé à l'employé",
+		description: 'Email of the Frappe user account linked to the employee',
 	},
 ];
 
@@ -212,7 +211,7 @@ export const employeeDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['employee'], operation: ['create'] } },
-		description: "Prénom de l'employé",
+		description: 'Employee first name',
 	},
 	{
 		displayName: 'Gender',
@@ -239,7 +238,7 @@ export const employeeDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['employee'], operation: ['create'] } },
-		description: "Date d'entrée dans l'entreprise",
+		description: 'Date the employee joined the company',
 	},
 	{
 		displayName: 'Company',
@@ -252,7 +251,7 @@ export const employeeDescription: INodeProperties[] = [
 	},
 	documentIdField(
 		'employee',
-		'Champ « name » de l\'enregistrement Frappe. Pour un employé il ressemble à HR-EMP-00001.',
+		'The Frappe record "name" field. For an employee it looks like HR-EMP-00001.',
 	),
 	{
 		displayName: 'Additional Fields',

@@ -9,7 +9,7 @@ const jobOpeningFields: INodeProperties[] = [
 		name: 'closes_on',
 		type: 'dateTime',
 		default: '',
-		description: "Date de clôture des candidatures",
+		description: 'Date applications close',
 	},
 	{
 		displayName: 'Company',
@@ -59,14 +59,14 @@ const jobOpeningFields: INodeProperties[] = [
 		name: 'job_requisition',
 		type: 'string',
 		default: '',
-		description: 'Champ « name » de la demande de recrutement à l\'origine du poste',
+		description: 'The "name" field of the staffing plan request behind the opening',
 	},
 	{
 		displayName: 'Job Title',
 		name: 'job_title',
 		type: 'string',
 		default: '',
-		description: "Intitulé du poste tel qu'il est publié",
+		description: 'Job title as published',
 	},
 	{
 		displayName: 'Location',
@@ -80,7 +80,7 @@ const jobOpeningFields: INodeProperties[] = [
 		name: 'lower_range',
 		type: 'number',
 		default: 0,
-		description: 'Bas de la fourchette de rémunération',
+		description: 'Lower bound of the salary range',
 	},
 	{
 		displayName: 'Posted On',
@@ -94,7 +94,7 @@ const jobOpeningFields: INodeProperties[] = [
 		name: 'staffing_plan',
 		type: 'string',
 		default: '',
-		description: 'Champ « name » du plan de recrutement associé',
+		description: 'The "name" field of the related staffing plan',
 	},
 	{
 		displayName: 'Status',
@@ -112,7 +112,7 @@ const jobOpeningFields: INodeProperties[] = [
 		name: 'upper_range',
 		type: 'number',
 		default: 0,
-		description: 'Haut de la fourchette de rémunération',
+		description: 'Upper bound of the salary range',
 	},
 ];
 
@@ -127,7 +127,7 @@ export const jobOpeningDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['jobOpening'], operation: ['create'] } },
-		description: "Intitulé du poste tel qu'il est publié",
+		description: 'Job title as published',
 	},
 	{
 		displayName: 'Company',
@@ -149,7 +149,7 @@ export const jobOpeningDescription: INodeProperties[] = [
 	},
 	documentIdField(
 		'jobOpening',
-		'Champ « name » de l\'enregistrement Frappe. Pour une offre il ressemble à HR-OPN-2026-0001.',
+		'The Frappe record "name" field. For a job opening it looks like HR-OPN-2026-0001.',
 	),
 	{
 		displayName: 'Additional Fields',
