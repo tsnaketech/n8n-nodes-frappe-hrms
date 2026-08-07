@@ -19,41 +19,81 @@ const expenseClaimFields: INodeProperties[] = [
 			'The approver decision. Distinct from "status", which Frappe computes from the docstatus and the payment.',
 	},
 	{
-		displayName: 'Company',
+		displayName: 'Company Name or ID',
 		name: 'company',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCompanies' },
 		default: '',
 		description:
-			'Link to a Company doctype record. Frappe infers it from the employee when left empty.',
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
-		displayName: 'Cost Center',
+		displayName: 'Cost Center Name or ID',
 		name: 'cost_center',
-		type: 'string',
-		default: '',
-		description: 'Lien vers un enregistrement du doctype Cost Center',
-	},
-	{
-		displayName: 'Currency',
-		name: 'currency',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCostCenters' },
 		default: '',
 		description:
-			'Link to a Currency doctype record. Mandatory since Frappe HR v16, but Frappe reads it from the employee salary_currency: leave it empty unless the claim is in another currency.',
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+	},
+	{
+		displayName: 'Currency Name or ID',
+		name: 'currency',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCurrencies' },
+		default: '',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Employee',
 		name: 'employee',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchEmployee',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-EMP-00001',
+			},
+		],
 	},
 	{
 		displayName: 'Expense Approver',
 		name: 'expense_approver',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'Email of the user responsible for approving the expense claim',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchUser',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'agent@example.com',
+			},
+		],
 	},
 	{
 		displayName: 'Exchange Rate',
@@ -71,39 +111,95 @@ const expenseClaimFields: INodeProperties[] = [
 		description: 'Whether the expense was already paid by the company',
 	},
 	{
-		displayName: 'Mode of Payment',
+		displayName: 'Mode of Payment Name or ID',
 		name: 'mode_of_payment',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getModesOfPayment' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Mode of Payment',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Payable Account',
 		name: 'payable_account',
-		type: 'string',
-		default: '',
-		description: 'Lien vers un enregistrement du doctype Account',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		description: 'Link to an Account record',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchAccount',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'Debtors - ACME',
+			},
+		],
 	},
 	{
 		displayName: 'Posting Date',
 		name: 'posting_date',
 		type: 'dateTime',
 		default: '',
-		description: 'Date de comptabilisation. Frappe utilise la date du jour si le champ est vide.',
+		description: 'Accounting date. Frappe uses today when the field is empty.',
 	},
 	{
 		displayName: 'Project',
 		name: 'project',
-		type: 'string',
-		default: '',
-		description: 'Lien vers un enregistrement du doctype Project',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		description: 'Link to a Project record',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchProject',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'PROJ-0001',
+			},
+		],
 	},
 	{
 		displayName: 'Task',
 		name: 'task',
-		type: 'string',
-		default: '',
-		description: 'Lien vers un enregistrement du doctype Task',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		description: 'Link to a Task record',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchTask',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'TASK-2026-00001',
+			},
+		],
 	},
 ];
 
@@ -137,11 +233,13 @@ const expensesField: INodeProperties = {
 					description: 'Claimed amount, in the currency of the expense claim',
 				},
 				{
-					displayName: 'Cost Center',
+					displayName: 'Cost Center Name or ID',
 					name: 'cost_center',
-					type: 'string',
+					type: 'options',
+					typeOptions: { loadOptionsMethod: 'getCostCenters' },
 					default: '',
-					description: 'Lien vers un enregistrement du doctype Cost Center',
+					description:
+						'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 				},
 				{
 					displayName: 'Description',
@@ -163,7 +261,7 @@ const expensesField: INodeProperties = {
 					type: 'string',
 					default: '',
 					required: true,
-					description: 'Lien vers un enregistrement du doctype Expense Claim Type, par ex. Travel ou Food.',
+					description: 'Link to an Expense Claim Type record, e.g. Travel or Food',
 				},
 				{
 					displayName: 'Sanctioned Amount',
@@ -178,20 +276,48 @@ const expensesField: INodeProperties = {
 	],
 };
 
+/**
+ * Fields exposed at the top level on create, outside the collection.
+ *
+ * The node imports this list to know which parameters to read there, so the fields
+ * drawn here and the fields sent cannot drift apart.
+ */
+export const EXPENSE_CLAIM_REQUIRED_ON_CREATE = ['employee'];
+
 export const expenseClaimDescription: INodeProperties[] = [
 	operationsFor('expenseClaim', 'expense claim'),
 	{
 		displayName: 'Employee',
 		name: 'employee',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		required: true,
 		displayOptions: { show: { resource: ['expenseClaim'], operation: ['create'] } },
 		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchEmployee',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-EMP-00001',
+			},
+		],
 	},
 	documentIdField(
 		'expenseClaim',
 		'The Frappe record "name" field. For an expense claim it looks like HR-EXP-2026-00001.',
+		undefined,
+		'HR-EXP-2026-00001',
 	),
 	expensesField,
 	{
@@ -201,7 +327,7 @@ export const expenseClaimDescription: INodeProperties[] = [
 		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['expenseClaim'], operation: ['create'] } },
-		options: omitFields(expenseClaimFields, ['employee']),
+		options: omitFields(expenseClaimFields, EXPENSE_CLAIM_REQUIRED_ON_CREATE),
 	},
 	{
 		displayName: 'Update Fields',

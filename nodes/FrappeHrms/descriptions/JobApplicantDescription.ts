@@ -9,14 +9,32 @@ const jobApplicantFields: INodeProperties[] = [
 		name: 'applicant_name',
 		type: 'string',
 		default: '',
-		description: 'Nom complet du candidat',
+		description: 'Full name of the applicant',
 	},
 	{
 		displayName: 'Country',
 		name: 'country',
-		type: 'string',
-		default: '',
-		description: 'Lien vers un enregistrement du doctype Country',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		description: 'Link to a Country record',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchCountry',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'France',
+			},
+		],
 	},
 	{
 		displayName: 'Cover Letter',
@@ -27,41 +45,81 @@ const jobApplicantFields: INodeProperties[] = [
 		description: 'Lettre de motivation',
 	},
 	{
-		displayName: 'Currency',
+		displayName: 'Currency Name or ID',
 		name: 'currency',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCurrencies' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Currency, par ex. EUR.',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
-		displayName: 'Designation',
+		displayName: 'Designation Name or ID',
 		name: 'designation',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getDesignations' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Designation',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Email ID',
 		name: 'email_id',
 		type: 'string',
-		placeholder: 'nom@email.com',
+		placeholder: 'name@example.com',
 		default: '',
-		description: 'Adresse email du candidat',
+		description: "Applicant's e-mail address",
 	},
 	{
 		displayName: 'Employee Referral',
 		name: 'employee_referral',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'The "name" field of the employee referral behind the application',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchEmployeeReferral',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-REF-0001',
+			},
+		],
 	},
 	{
 		displayName: 'Job Opening',
 		name: 'job_title',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description:
 			'The "name" field of the targeted opening, e.g. HR-OPN-2026-0001. The Frappe field is called job_title but does point at the Job Opening doctype.',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchJobOpening',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-OPN-2026-0001',
+			},
+		],
 	},
 	{
 		displayName: 'Lower Range',
@@ -85,18 +143,38 @@ const jobApplicantFields: INodeProperties[] = [
 		description: 'URL of a resume hosted elsewhere, e.g. a LinkedIn profile',
 	},
 	{
-		displayName: 'Source',
+		displayName: 'Source Name or ID',
 		name: 'source',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getJobApplicantSources' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Job Applicant Source, par ex. Website Listing.',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Source Name',
 		name: 'source_name',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'The "name" field of the referring employee when the source is a referral',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchEmployee',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-EMP-00001',
+			},
+		],
 	},
 	{
 		displayName: 'Status',
@@ -111,7 +189,7 @@ const jobApplicantFields: INodeProperties[] = [
 			{ name: 'Shortlisted', value: 'Shortlisted' },
 		],
 		default: 'Open',
-		description: 'Étape du candidat dans le processus de recrutement',
+		description: 'Stage of the applicant in the recruitment process',
 	},
 	{
 		displayName: 'Upper Range',
@@ -122,7 +200,13 @@ const jobApplicantFields: INodeProperties[] = [
 	},
 ];
 
-const REQUIRED_ON_CREATE = ['applicant_name', 'email_id'];
+/**
+ * Fields exposed at the top level on create, outside the collection.
+ *
+ * The node imports this list to know which parameters to read there, so the fields
+ * drawn here and the fields sent cannot drift apart.
+ */
+export const JOB_APPLICANT_REQUIRED_ON_CREATE = ['applicant_name', 'email_id'];
 
 export const jobApplicantDescription: INodeProperties[] = [
 	operationsFor('jobApplicant', 'job applicant'),
@@ -133,21 +217,23 @@ export const jobApplicantDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['jobApplicant'], operation: ['create'] } },
-		description: 'Nom complet du candidat',
+		description: 'Full name of the applicant',
 	},
 	{
 		displayName: 'Email ID',
 		name: 'email_id',
 		type: 'string',
-		placeholder: 'nom@email.com',
+		placeholder: 'name@example.com',
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['jobApplicant'], operation: ['create'] } },
-		description: 'Adresse email du candidat',
+		description: "Applicant's e-mail address",
 	},
 	documentIdField(
 		'jobApplicant',
 		'The Frappe record "name" field. For an applicant it looks like HR-APP-2026-00001.',
+		undefined,
+		'HR-APP-2026-00001',
 	),
 	{
 		displayName: 'Additional Fields',
@@ -156,7 +242,7 @@ export const jobApplicantDescription: INodeProperties[] = [
 		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['jobApplicant'], operation: ['create'] } },
-		options: omitFields(jobApplicantFields, REQUIRED_ON_CREATE),
+		options: omitFields(jobApplicantFields, JOB_APPLICANT_REQUIRED_ON_CREATE),
 	},
 	{
 		displayName: 'Update Fields',

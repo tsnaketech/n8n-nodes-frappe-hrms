@@ -27,7 +27,7 @@ export type FrappeHrmsResource = keyof typeof DOCTYPE_BY_RESOURCE;
 export function getDoctype(resource: string): string {
 	const doctype = DOCTYPE_BY_RESOURCE[resource as FrappeHrmsResource];
 	if (doctype === undefined) {
-		throw new Error(`Resource inconnue : ${resource}`);
+		throw new Error(`Unknown resource: ${resource}`);
 	}
 	return doctype;
 }

@@ -28,21 +28,39 @@ const leaveApplicationFields: INodeProperties[] = [
 		type: 'string',
 		typeOptions: { rows: 3 },
 		default: '',
-		description: 'Motif de la demande',
+		description: 'Reason for the request',
 	},
 	{
 		displayName: 'Employee',
 		name: 'employee',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchEmployee',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-EMP-00001',
+			},
+		],
 	},
 	{
 		displayName: 'Follow via Email',
 		name: 'follow_via_email',
 		type: 'boolean',
 		default: true,
-		description: "Whether Frappe should notify the approver by email",
+		description: 'Whether Frappe should notify the approver by email',
 	},
 	{
 		displayName: 'From Date',
@@ -68,16 +86,36 @@ const leaveApplicationFields: INodeProperties[] = [
 	{
 		displayName: 'Leave Approver',
 		name: 'leave_approver',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'Email of the user responsible for approving the application',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchUser',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'agent@example.com',
+			},
+		],
 	},
 	{
-		displayName: 'Leave Type',
+		displayName: 'Leave Type Name or ID',
 		name: 'leave_type',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getLeaveTypes' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Leave Type, par ex. Casual Leave ou Sick Leave.',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Posting Date',
@@ -104,27 +142,58 @@ const leaveApplicationFields: INodeProperties[] = [
 	},
 ];
 
-const REQUIRED_ON_CREATE = ['employee', 'leave_type', 'from_date', 'to_date'];
+/**
+ * Fields exposed at the top level on create, outside the collection.
+ *
+ * The node imports this list to know which parameters to read there, so the fields
+ * drawn here and the fields sent cannot drift apart.
+ */
+export const LEAVE_APPLICATION_REQUIRED_ON_CREATE = [
+	'employee',
+	'leave_type',
+	'from_date',
+	'to_date',
+];
 
 export const leaveApplicationDescription: INodeProperties[] = [
 	approvalOperationsFor('leaveApplication', 'leave application'),
 	{
 		displayName: 'Employee',
 		name: 'employee',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		required: true,
 		displayOptions: { show: { resource: ['leaveApplication'], operation: ['create'] } },
 		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchEmployee',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-EMP-00001',
+			},
+		],
 	},
 	{
-		displayName: 'Leave Type',
+		displayName: 'Leave Type Name or ID',
 		name: 'leave_type',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getLeaveTypes' },
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['leaveApplication'], operation: ['create'] } },
-		description: 'Lien vers un enregistrement du doctype Leave Type, par ex. Casual Leave ou Sick Leave.',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'From Date',
@@ -148,6 +217,7 @@ export const leaveApplicationDescription: INodeProperties[] = [
 		'leaveApplication',
 		'The Frappe record "name" field. For a leave application it looks like HR-LAP-2026-00001.',
 		['get', 'update', 'delete', 'approve', 'reject'],
+		'HR-LAP-2026-00001',
 	),
 	{
 		displayName: 'Additional Fields',
@@ -156,7 +226,7 @@ export const leaveApplicationDescription: INodeProperties[] = [
 		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['leaveApplication'], operation: ['create'] } },
-		options: omitFields(leaveApplicationFields, REQUIRED_ON_CREATE),
+		options: omitFields(leaveApplicationFields, LEAVE_APPLICATION_REQUIRED_ON_CREATE),
 	},
 	{
 		displayName: 'Update Fields',
@@ -180,10 +250,28 @@ export const leaveApplicationDescription: INodeProperties[] = [
 			{
 				displayName: 'Leave Approver',
 				name: 'leave_approver',
-				type: 'string',
-				default: '',
+				type: 'resourceLocator',
+				default: { mode: 'list', value: '' },
 				description:
 					'Email of the approver to set on the application before submitting it. Leaving it empty keeps the one already there.',
+				modes: [
+					{
+						displayName: 'From List',
+						name: 'list',
+						type: 'list',
+						typeOptions: {
+							searchListMethod: 'searchUser',
+							searchable: true,
+							searchFilterRequired: false,
+						},
+					},
+					{
+						displayName: 'By Name',
+						name: 'name',
+						type: 'string',
+						placeholder: 'agent@example.com',
+					},
+				],
 			},
 			{
 				displayName: 'Submit',

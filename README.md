@@ -28,11 +28,11 @@ cd ~/.n8n/custom
 npm install n8n-nodes-frappe-hrms
 ```
 
-Restart n8n, then search for "Frappe HRMS" in the node panel.
+Restart n8n, then search for "Frappe HR" in the node panel — the former name, "HRMS", still matches.
 
 ## Credentials
 
-This package uses a single credential type, **Frappe API** (`frappeApi`) — the *same* credential type as the Frappe CRM and Frappe Helpdesk nodes. If you already have it configured, the Frappe HRMS node can select it directly.
+This package uses a single credential type, **Frappe API** (`frappeApi`) — the *same* credential type as the Frappe CRM and Frappe Helpdesk nodes. If you already have it configured, the Frappe HR node can select it directly.
 
 ### Generating API keys in Frappe
 
@@ -146,6 +146,23 @@ Frappe reports errors in a `_server_messages` field that contains JSON encoded *
 
 Each example below is a node you can paste into an n8n workflow. Replace the `credentials` block with your own credential.
 
+### Link fields
+
+Fields that point at another Frappe record are pickers, not free text. Two shapes, chosen by what
+the target doctype holds:
+
+- **A searchable list** for anything the day fills up — employees, users, projects. Filtering
+  happens on the Frappe side, 50 rows at a time, and the list shows a readable label beside the
+  identifier: `HR-EMP-00001 — Marie Dupont`. Every one of them keeps a **By Name** tab for a literal
+  value or an expression.
+- **A dropdown** for the configuration doctypes an administrator maintains — designations, leave
+  types, currencies. n8n labels these `… Name or ID`.
+
+A picker never blocks you: if the list cannot be read, the manual mode still accepts the identifier.
+Note that a searchable field is stored as `{ "__rl": true, "mode": …, "value": … }`, which is why
+the examples below spell it out.
+
+
 ### Employee — create
 
 ```json
@@ -154,19 +171,27 @@ Each example below is a node you can paste into an n8n workflow. Replace the `cr
 		"resource": "employee",
 		"operation": "create",
 		"first_name": "Marie",
+		"last_name": "Dupont",
 		"gender": "Female",
 		"date_of_birth": "1992-04-17",
 		"date_of_joining": "2026-09-01",
 		"company": "Acme SAS",
 		"additionalFields": {
-			"last_name": "Dupont",
 			"company_email": "marie.dupont@acme.io",
 			"department": "Engineering - A",
 			"designation": "Backend Developer",
 			"employment_type": "Full-time",
 			"holiday_list": "France 2026",
-			"leave_approver": "rh@acme.io",
-			"reports_to": "HR-EMP-00002"
+			"leave_approver": {
+				"__rl": true,
+				"mode": "name",
+				"value": "rh@acme.io"
+			},
+			"reports_to": {
+				"__rl": true,
+				"mode": "name",
+				"value": "HR-EMP-00002"
+			}
 		}
 	},
 	"type": "n8n-nodes-frappe-hrms.frappeHrms",
@@ -177,7 +202,7 @@ Each example below is a node you can paste into an n8n workflow. Replace the `cr
 }
 ```
 
-`first_name`, `gender`, `date_of_birth`, `date_of_joining` and `company` are the five fields the doctype declares `reqd`. `employee_name` is derived by Frappe from the name parts, so it is not exposed. `Gender`, `Department`, `Designation` and `Employment Type` are Links: the value must be the `name` of an existing record.
+`first_name`, `gender`, `date_of_birth`, `date_of_joining` and `company` are the five fields the doctype declares `reqd`. **Last Name** is required by the node too, although Frappe does not ask for it: `employee_name` — the label every list and every Link shows — is built from the name parts, so an employee created with a first name alone stays labelled that way, which is tedious to repair once documents point at it. On **update** it is optional. `employee_name` itself is derived by Frappe, so it is not exposed. `Gender`, `Department`, `Designation` and `Employment Type` are Links: the value must be the `name` of an existing record.
 
 ### Leave Application — create
 
@@ -186,13 +211,21 @@ Each example below is a node you can paste into an n8n workflow. Replace the `cr
 	"parameters": {
 		"resource": "leaveApplication",
 		"operation": "create",
-		"employee": "HR-EMP-00001",
+		"employee": {
+			"__rl": true,
+			"mode": "name",
+			"value": "HR-EMP-00001"
+		},
 		"leave_type": "Casual Leave",
 		"from_date": "2026-08-10",
 		"to_date": "2026-08-14",
 		"additionalFields": {
 			"description": "Congés d'été",
-			"leave_approver": "rh@acme.io",
+			"leave_approver": {
+				"__rl": true,
+				"mode": "name",
+				"value": "rh@acme.io"
+			},
 			"posting_date": "2026-07-29"
 		}
 	},
@@ -213,9 +246,17 @@ The record is created as a draft with status `Open`. `company` and `department` 
 	"parameters": {
 		"resource": "leaveApplication",
 		"operation": "approve",
-		"documentId": "HR-LAP-2026-00001",
+		"documentId": {
+			"__rl": true,
+			"mode": "name",
+			"value": "HR-LAP-2026-00001"
+		},
 		"approvalOptions": {
-			"leave_approver": "rh@acme.io",
+			"leave_approver": {
+				"__rl": true,
+				"mode": "name",
+				"value": "rh@acme.io"
+			},
 			"submit": true
 		}
 	},
@@ -238,7 +279,11 @@ The output is the full submitted document, `docstatus` included, so a downstream
 	"parameters": {
 		"resource": "attendance",
 		"operation": "create",
-		"employee": "HR-EMP-00001",
+		"employee": {
+			"__rl": true,
+			"mode": "name",
+			"value": "HR-EMP-00001"
+		},
 		"attendance_date": "2026-07-29",
 		"status": "Present",
 		"additionalFields": {
@@ -266,7 +311,11 @@ The output is the full submitted document, `docstatus` included, so a downstream
 	"parameters": {
 		"resource": "expenseClaim",
 		"operation": "create",
-		"employee": "HR-EMP-00001",
+		"employee": {
+			"__rl": true,
+			"mode": "name",
+			"value": "HR-EMP-00001"
+		},
 		"expenses": {
 			"expense": [
 				{
@@ -284,7 +333,11 @@ The output is the full submitted document, `docstatus` included, so a downstream
 			]
 		},
 		"additionalFields": {
-			"expense_approver": "rh@acme.io",
+			"expense_approver": {
+				"__rl": true,
+				"mode": "name",
+				"value": "rh@acme.io"
+			},
 			"posting_date": "2026-07-22",
 			"cost_center": "Main - A"
 		}
@@ -369,9 +422,17 @@ Every submitted slip for one payroll period, newest first:
 		"email_id": "jean.martin@email.com",
 		"additionalFields": {
 			"phone_number": "+33 6 12 34 56 78",
-			"job_title": "HR-OPN-2026-0001",
+			"job_title": {
+				"__rl": true,
+				"mode": "name",
+				"value": "HR-OPN-2026-0001"
+			},
 			"designation": "Backend Developer",
-			"country": "France",
+			"country": {
+				"__rl": true,
+				"mode": "name",
+				"value": "France"
+			},
 			"source": "Website Listing",
 			"status": "Open",
 			"resume_link": "https://www.linkedin.com/in/jean-martin"
@@ -385,7 +446,7 @@ Every submitted slip for one payroll period, newest first:
 }
 ```
 
-Careful with `job_title`: on `Job Applicant` this field is a **Link to `Job Opening`**, not free text. The node labels it **Job Opening** for that reason. Give it the opening's `name` (`HR-OPN-2026-0001`), not its title.
+Careful with `job_title`: on `Job Applicant` this field is a **Link to `Job Opening`**, not free text. The node labels it **Job Opening** for that reason, and offers a searchable list of openings — the value stored is the opening's `name` (`HR-OPN-2026-0001`), not its title.
 
 ### Job Offer — create
 
@@ -394,7 +455,11 @@ Careful with `job_title`: on `Job Applicant` this field is a **Link to `Job Open
 	"parameters": {
 		"resource": "jobOffer",
 		"operation": "create",
-		"job_applicant": "HR-APP-2026-00001",
+		"job_applicant": {
+			"__rl": true,
+			"mode": "name",
+			"value": "HR-APP-2026-00001"
+		},
 		"offer_date": "2026-08-05",
 		"designation": "Backend Developer",
 		"company": "Acme SAS",
@@ -422,7 +487,11 @@ Any writable resource, given its document ID:
 	"parameters": {
 		"resource": "jobOpening",
 		"operation": "delete",
-		"documentId": "HR-OPN-2026-0001"
+		"documentId": {
+			"__rl": true,
+			"mode": "name",
+			"value": "HR-OPN-2026-0001"
+		}
 	},
 	"type": "n8n-nodes-frappe-hrms.frappeHrms",
 	"typeVersion": 1,
@@ -457,7 +526,7 @@ ERPNext is required: `hrms/hooks.py` declares it as `required_apps`, and the `Em
 
 ### 0.1.0
 
-Initial release. Frappe HRMS node with the Employee, Leave Application, Attendance, Expense Claim, Salary Slip, Job Opening, Job Applicant and Job Offer resources, the Approve/Reject leave workflow, and the shared `frappeApi` credential.
+Initial release. Frappe HR node with the Employee, Leave Application, Attendance, Expense Claim, Salary Slip, Job Opening, Job Applicant and Job Offer resources, the Approve/Reject leave workflow, and the shared `frappeApi` credential.
 
 ## Development
 

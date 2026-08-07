@@ -5,7 +5,7 @@ Guide pour les agents IA travaillant sur ce dépôt.
 ## Contexte du projet
 
 Package de nœuds communautaires n8n, écrit en TypeScript, publié sous le nom
-`n8n-nodes-frappe-hrms`. Il expose **un nœud**, `Frappe HRMS`, qui pilote
+`n8n-nodes-frappe-hrms`. Il expose **un nœud**, `Frappe HR`, qui pilote
 [Frappe HR](https://github.com/frappe/hrms) (l'app `hrms`) via l'API REST générique de
 Frappe.
 
@@ -74,7 +74,8 @@ satisferait sans rien changer à l'écran. Ne pas réactiver la règle sans en d
   le nommage des paramètres, `displayName`, l'ordre **alphabétique** des options et des
   champs de collection, la ponctuation finale des `description` — ces erreurs de lint sont
   des vraies contraintes de la plateforme, ne pas les désactiver avec un commentaire sans
-  raison. `npm run lint:fix` en corrige la majorité.
+  raison. `npm run lint:fix` en corrige la majorité — lire la mise en garde plus bas
+  avant de le lancer.
 - TypeScript en `strict`, avec `noUnusedLocals` et `noImplicitReturns` : du code mort ou une
   branche sans `return` casse le build.
 - Importer les types depuis `n8n-workflow` en `import type`, et les valeurs
@@ -150,6 +151,92 @@ Le nœud vise Frappe v15 **et** v16 avec un seul code. Les écarts à connaître
   `document_list` retraduit `limit`/`start` et délègue à `frappe.client.get_list`, en 16
   c'est une réécriture sur `frappe.qb.get_query` avec `has_next_page`. Un seul transport pour
   les deux versions impose donc la v1.
+
+## Attention avec `npm run lint:fix`
+
+L'autofix de `node-param-description-missing-final-period` **casse les descriptions
+construites en template literal** : il a déjà remplacé, dans un package frère, une description
+`` `... ${hint}` `` par une chaîne littérale tronquée, supprimant l'interpolation au passage —
+le build ne le voit pas, seul `noUnusedLocals` a signalé le paramètre devenu inutilisé. Ce
+dépôt en compte 14. Après un `lint:fix`, relire le diff des fichiers `descriptions/` plutôt
+que de le supposer sûr.
+
+## Sélecteurs (champs Link)
+
+Aucun champ pointant vers un autre enregistrement Frappe n'est en texte libre. Cinq blocs
+portent ce mécanisme dans `FrappeHrms.node.ts` :
+
+| Bloc | Rôle |
+| --- | --- |
+| `searchIn` | recherche paginée dans un doctype, filtrage côté Frappe |
+| `searchDocuments` | le champ **Document** ; résout le doctype depuis le paramètre `resource` |
+| `linkSearch(doctype, titleField?)` | fabrique une recherche pour un champ Link |
+| `linkOptions(doctype, { filters?, labelField? })` | fabrique une liste déroulante |
+| `unwrapResourceLocators` | déballe les locators d'une collection avant l'envoi |
+
+**Ces blocs sont identiques au caractère près dans les six packages applicatifs**, au même
+titre que le transport (règle n°0) : une correction ici se reporte partout.
+
+### À ne pas casser
+
+- **`documentId` est un `resourceLocator`.** Le lire sans `{ extractValue: true }` renvoie
+  `{ __rl, mode, value }` et Frappe reçoit `[object Object]` dans l'URL. Même chose pour tout
+  champ Link exposé au premier niveau.
+- **Les locators d'une collection ne sont pas déballés par n8n.**
+  `getNodeParameter('additionalFields', i)` rend les objets bruts : passer par
+  `unwrapResourceLocators` avant de construire le corps. n8n ne déballe que si l'on adresse le
+  paramètre par son chemin exact, ce qui imposerait un appel par champ.
+- **Une méthode `listSearch` ignore quel champ l'a appelée.** D'où une méthode liée par doctype
+  cible, produite par la fabrique — et non une méthode générique.
+
+### Choisir entre recherche et liste déroulante
+
+Le critère est la **nature** du doctype, pas son nombre de lignes actuel : `Address` ou
+`Project` peuvent être vides sur un site de test et sans limite en production.
+
+- **Recherche** pour ce que l'activité alimente : personnes, documents transactionnels, et les
+  listes ISO volumineuses (`Country`, 250 lignes).
+- **Liste déroulante** pour ce qu'un administrateur maintient. `Currency` y entre grâce au
+  filtre `enabled = 1`, qui ramène ~150 lignes à une poignée.
+
+### Champ titre : se lire, jamais se deviner
+
+Lire **`title_field` et `autoname`** dans `/api/resource/DocType/<nom>` avant de renseigner
+`TITLE_FIELD_BY_RESOURCE` ou l'argument `titleField`. Quand l'`autoname` est `field:x` ou
+`format:{####} {title}`, le `name` porte déjà le libellé et en ajouter un le répète
+(« 0002 Introduction — Introduction »).
+
+Les deux fabriques retombent sur `name` seul si Frappe refuse le champ, donc **une erreur ici
+ne casse rien et ne se voit pas** : elle se contrôle sur des données réelles, pas au jugé.
+
+### Détecter un champ Link
+
+Se fier à ce que le doctype **déclare**, pas au libellé des descriptions du nœud. Un comptage
+fondé sur la mention « Link to » avait manqué 16 champs sur le seul package HRMS. Penser aussi
+aux **Custom Fields** : ils n'apparaissent pas dans `DocType.fields` et se lisent séparément
+via le doctype `Custom Field`.
+
+### `REQUIRED_ON_CREATE` a une source unique
+
+La liste des champs exposés au premier niveau à la création est déclarée **dans le fichier de
+description** de la ressource et exportée (`EMPLOYEE_REQUIRED_ON_CREATE`, etc.) ; le nœud
+l'importe pour composer son `Record`. Ne pas la réécrire dans le nœud : les deux copies
+existaient et avaient déjà divergé.
+
+### `last_name` est requis par le nœud, pas par Frappe
+
+Le doctype `Employee` ne marque pas `last_name` comme `reqd`. Le nœud l'impose quand même à la
+création : `employee_name` — le libellé que montrent toutes les listes et tous les Link — est
+composé des parties du nom, et un employé créé avec un prénom seul reste étiqueté ainsi, ce
+qui est pénible à rattraper une fois que des documents le référencent. Ne pas « corriger » ce
+`required` en croyant à une erreur. L'update le laisse optionnel.
+
+### Contrainte ESLint sur les listes dynamiques
+
+Un champ `type: 'options'` alimenté par `loadOptionsMethod` impose un `displayName` suffixé
+« Name or ID » et une `description` strictement égale au texte « Choose from the list, or
+specify an ID using an expression ». Aucune précision métier ne peut y rester : sa place est
+dans le README.
 
 ## Documentation
 

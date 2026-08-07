@@ -12,25 +12,31 @@ const jobOpeningFields: INodeProperties[] = [
 		description: 'Date applications close',
 	},
 	{
-		displayName: 'Company',
+		displayName: 'Company Name or ID',
 		name: 'company',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCompanies' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Company',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
-		displayName: 'Currency',
+		displayName: 'Currency Name or ID',
 		name: 'currency',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCurrencies' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Currency, par ex. EUR.',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
-		displayName: 'Department',
+		displayName: 'Department Name or ID',
 		name: 'department',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getDepartments' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Department',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Description',
@@ -38,28 +44,50 @@ const jobOpeningFields: INodeProperties[] = [
 		type: 'string',
 		typeOptions: { rows: 4 },
 		default: '',
-		description: "Descriptif du poste. Champ Text Editor : il accepte du HTML.",
+		description: 'Description of the job. Text Editor field: it accepts HTML.',
 	},
 	{
-		displayName: 'Designation',
+		displayName: 'Designation Name or ID',
 		name: 'designation',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getDesignations' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Designation',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
-		displayName: 'Employment Type',
+		displayName: 'Employment Type Name or ID',
 		name: 'employment_type',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getEmploymentTypes' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Employment Type, par ex. Full-time ou Intern.',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Job Requisition',
 		name: 'job_requisition',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'The "name" field of the staffing plan request behind the opening',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchJobRequisition',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-JRQ-2026-00001',
+			},
+		],
 	},
 	{
 		displayName: 'Job Title',
@@ -69,11 +97,13 @@ const jobOpeningFields: INodeProperties[] = [
 		description: 'Job title as published',
 	},
 	{
-		displayName: 'Location',
+		displayName: 'Location Name or ID',
 		name: 'location',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getBranches' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Branch',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Lower Range',
@@ -87,14 +117,32 @@ const jobOpeningFields: INodeProperties[] = [
 		name: 'posted_on',
 		type: 'dateTime',
 		default: '',
-		description: 'Date de publication',
+		description: 'Publication date',
 	},
 	{
 		displayName: 'Staffing Plan',
 		name: 'staffing_plan',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'The "name" field of the related staffing plan',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchStaffingPlan',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'Plan 2026',
+			},
+		],
 	},
 	{
 		displayName: 'Status',
@@ -105,7 +153,7 @@ const jobOpeningFields: INodeProperties[] = [
 			{ name: 'Open', value: 'Open' },
 		],
 		default: 'Open',
-		description: 'Statut de publication du poste',
+		description: 'Publication status of the job opening',
 	},
 	{
 		displayName: 'Upper Range',
@@ -116,7 +164,13 @@ const jobOpeningFields: INodeProperties[] = [
 	},
 ];
 
-const REQUIRED_ON_CREATE = ['job_title', 'company', 'designation'];
+/**
+ * Fields exposed at the top level on create, outside the collection.
+ *
+ * The node imports this list to know which parameters to read there, so the fields
+ * drawn here and the fields sent cannot drift apart.
+ */
+export const JOB_OPENING_REQUIRED_ON_CREATE = ['job_title', 'company', 'designation'];
 
 export const jobOpeningDescription: INodeProperties[] = [
 	operationsFor('jobOpening', 'job opening'),
@@ -130,26 +184,32 @@ export const jobOpeningDescription: INodeProperties[] = [
 		description: 'Job title as published',
 	},
 	{
-		displayName: 'Company',
+		displayName: 'Company Name or ID',
 		name: 'company',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCompanies' },
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['jobOpening'], operation: ['create'] } },
-		description: 'Lien vers un enregistrement du doctype Company',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
-		displayName: 'Designation',
+		displayName: 'Designation Name or ID',
 		name: 'designation',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getDesignations' },
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['jobOpening'], operation: ['create'] } },
-		description: 'Lien vers un enregistrement du doctype Designation',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	documentIdField(
 		'jobOpening',
 		'The Frappe record "name" field. For a job opening it looks like HR-OPN-2026-0001.',
+		undefined,
+		'HR-OPN-2026-0001',
 	),
 	{
 		displayName: 'Additional Fields',
@@ -158,7 +218,7 @@ export const jobOpeningDescription: INodeProperties[] = [
 		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['jobOpening'], operation: ['create'] } },
-		options: omitFields(jobOpeningFields, REQUIRED_ON_CREATE),
+		options: omitFields(jobOpeningFields, JOB_OPENING_REQUIRED_ON_CREATE),
 	},
 	{
 		displayName: 'Update Fields',

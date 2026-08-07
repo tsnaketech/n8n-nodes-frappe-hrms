@@ -16,6 +16,7 @@ export const salarySlipDescription: INodeProperties[] = [
 		'salarySlip',
 		'The Frappe record "name" field. For a salary slip it looks like Sal Slip/HR-EMP-00001/00001.',
 		['get'],
+		'Sal Slip/HR-EMP-00001/00001',
 	),
 	...getManyFields('salarySlip'),
 ];

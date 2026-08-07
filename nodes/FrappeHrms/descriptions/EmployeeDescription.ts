@@ -14,11 +14,13 @@ import { documentIdField, getManyFields, omitFields, operationsFor } from './Com
  */
 const employeeFields: INodeProperties[] = [
 	{
-		displayName: 'Branch',
+		displayName: 'Branch Name or ID',
 		name: 'branch',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getBranches' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Branch',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Cell Number',
@@ -28,26 +30,27 @@ const employeeFields: INodeProperties[] = [
 		description: 'Personal mobile number',
 	},
 	{
-		displayName: 'Company',
+		displayName: 'Company Name or ID',
 		name: 'company',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCompanies' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Company',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Company Email',
 		name: 'company_email',
 		type: 'string',
-		placeholder: 'nom@societe.com',
+		placeholder: 'name@company.com',
 		default: '',
-		description: "Adresse email professionnelle",
+		description: 'Work e-mail address',
 	},
 	{
 		displayName: 'Date of Birth',
 		name: 'date_of_birth',
 		type: 'dateTime',
 		default: '',
-		description: 'Date de naissance',
 	},
 	{
 		displayName: 'Date of Joining',
@@ -64,25 +67,31 @@ const employeeFields: INodeProperties[] = [
 		description: 'Retirement date',
 	},
 	{
-		displayName: 'Default Shift',
+		displayName: 'Default Shift Name or ID',
 		name: 'default_shift',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getShiftTypes' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Shift Type (custom field HRMS)',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
-		displayName: 'Department',
+		displayName: 'Department Name or ID',
 		name: 'department',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getDepartments' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Department',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
-		displayName: 'Designation',
+		displayName: 'Designation Name or ID',
 		name: 'designation',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getDesignations' },
 		default: '',
-		description: 'Link to a Designation doctype record (job title)',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Employee Number',
@@ -92,19 +101,38 @@ const employeeFields: INodeProperties[] = [
 		description: 'Internal employee number, distinct from the "name" field Frappe generates',
 	},
 	{
-		displayName: 'Employment Type',
+		displayName: 'Employment Type Name or ID',
 		name: 'employment_type',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getEmploymentTypes' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Employment Type, par ex. Full-time (custom field HRMS).',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Expense Approver',
 		name: 'expense_approver',
-		type: 'string',
-		default: '',
-		description:
-			'Email of the user allowed to approve expense claims (HRMS custom field)',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		description: 'Email of the user allowed to approve expense claims (HRMS custom field)',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchUser',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'agent@example.com',
+			},
+		],
 	},
 	{
 		displayName: 'First Name',
@@ -114,41 +142,63 @@ const employeeFields: INodeProperties[] = [
 		description: 'Employee first name',
 	},
 	{
-		displayName: 'Gender',
+		displayName: 'Gender Name or ID',
 		name: 'gender',
-		type: 'string',
-		default: '',
-		description: 'Lien vers un enregistrement du doctype Gender (ex. Male, Female).',
-	},
-	{
-		displayName: 'Grade',
-		name: 'grade',
-		type: 'string',
-		default: '',
-		description: 'Lien vers un enregistrement du doctype Employee Grade (custom field HRMS)',
-	},
-	{
-		displayName: 'Holiday List',
-		name: 'holiday_list',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getGenders' },
 		default: '',
 		description:
-			'Link to a Holiday List doctype record, used when computing leave',
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+	},
+	{
+		displayName: 'Grade Name or ID',
+		name: 'grade',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getEmployeeGrades' },
+		default: '',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+	},
+	{
+		displayName: 'Holiday List Name or ID',
+		name: 'holiday_list',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getHolidayLists' },
+		default: '',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Last Name',
 		name: 'last_name',
 		type: 'string',
 		default: '',
-		description: 'Nom de famille',
+		description: 'Employee surname',
 	},
 	{
 		displayName: 'Leave Approver',
 		name: 'leave_approver',
-		type: 'string',
-		default: '',
-		description:
-			'Email of the user allowed to approve leave applications (HRMS custom field)',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		description: 'Email of the user allowed to approve leave applications (HRMS custom field)',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchUser',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'agent@example.com',
+			},
+		],
 	},
 	{
 		displayName: 'Middle Name',
@@ -160,9 +210,9 @@ const employeeFields: INodeProperties[] = [
 		displayName: 'Personal Email',
 		name: 'personal_email',
 		type: 'string',
-		placeholder: 'nom@email.com',
+		placeholder: 'name@example.com',
 		default: '',
-		description: 'Adresse email personnelle',
+		description: 'Personal e-mail address',
 	},
 	{
 		displayName: 'Relieving Date',
@@ -174,9 +224,27 @@ const employeeFields: INodeProperties[] = [
 	{
 		displayName: 'Reports To',
 		name: 'reports_to',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'The "name" field of the reporting employee, e.g. HR-EMP-00002',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchEmployee',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-EMP-00001',
+			},
+		],
 	},
 	{
 		displayName: 'Status',
@@ -194,13 +262,51 @@ const employeeFields: INodeProperties[] = [
 	{
 		displayName: 'User ID',
 		name: 'user_id',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'Email of the Frappe user account linked to the employee',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchUser',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'agent@example.com',
+			},
+		],
 	},
 ];
 
-const REQUIRED_ON_CREATE = ['first_name', 'gender', 'date_of_birth', 'date_of_joining', 'company'];
+/**
+ * `last_name` is required here although the doctype does not mark it `reqd`: `employee_name`,
+ * the label every list and every link shows, is built from the name parts, and an employee
+ * created with a first name alone is labelled by it — awkward to spot and tedious to fix once
+ * documents reference the record. The constraint is the node's, not Frappe's, and Update
+ * leaves it optional so an existing employee is never forced to gain a surname.
+ */
+/**
+ * Fields exposed at the top level on create, outside the collection.
+ *
+ * The node imports this list to know which parameters to read there, so the fields
+ * drawn here and the fields sent cannot drift apart.
+ */
+export const EMPLOYEE_REQUIRED_ON_CREATE = [
+	'first_name',
+	'last_name',
+	'gender',
+	'date_of_birth',
+	'date_of_joining',
+	'company',
+];
 
 export const employeeDescription: INodeProperties[] = [
 	operationsFor('employee', 'employee'),
@@ -214,13 +320,24 @@ export const employeeDescription: INodeProperties[] = [
 		description: 'Employee first name',
 	},
 	{
-		displayName: 'Gender',
-		name: 'gender',
+		displayName: 'Last Name',
+		name: 'last_name',
 		type: 'string',
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['employee'], operation: ['create'] } },
-		description: 'Lien vers un enregistrement du doctype Gender (ex. Male, Female).',
+		description: 'Employee surname',
+	},
+	{
+		displayName: 'Gender Name or ID',
+		name: 'gender',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getGenders' },
+		default: '',
+		required: true,
+		displayOptions: { show: { resource: ['employee'], operation: ['create'] } },
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Date of Birth',
@@ -229,7 +346,6 @@ export const employeeDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['employee'], operation: ['create'] } },
-		description: 'Date de naissance',
 	},
 	{
 		displayName: 'Date of Joining',
@@ -241,17 +357,21 @@ export const employeeDescription: INodeProperties[] = [
 		description: 'Date the employee joined the company',
 	},
 	{
-		displayName: 'Company',
+		displayName: 'Company Name or ID',
 		name: 'company',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCompanies' },
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['employee'], operation: ['create'] } },
-		description: 'Lien vers un enregistrement du doctype Company',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	documentIdField(
 		'employee',
 		'The Frappe record "name" field. For an employee it looks like HR-EMP-00001.',
+		undefined,
+		'HR-EMP-00001',
 	),
 	{
 		displayName: 'Additional Fields',
@@ -260,7 +380,7 @@ export const employeeDescription: INodeProperties[] = [
 		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['employee'], operation: ['create'] } },
-		options: omitFields(employeeFields, REQUIRED_ON_CREATE),
+		options: omitFields(employeeFields, EMPLOYEE_REQUIRED_ON_CREATE),
 	},
 	{
 		displayName: 'Update Fields',

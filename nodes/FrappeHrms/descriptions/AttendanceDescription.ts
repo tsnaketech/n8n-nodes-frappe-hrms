@@ -17,15 +17,16 @@ const attendanceFields: INodeProperties[] = [
 		name: 'attendance_date',
 		type: 'dateTime',
 		default: '',
-		description: 'Jour couvert par le pointage',
+		description: 'Day the attendance record covers',
 	},
 	{
-		displayName: 'Company',
+		displayName: 'Company Name or ID',
 		name: 'company',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCompanies' },
 		default: '',
 		description:
-			'Link to a Company doctype record. Frappe infers it from the employee when left empty.',
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Early Exit',
@@ -37,9 +38,27 @@ const attendanceFields: INodeProperties[] = [
 	{
 		displayName: 'Employee',
 		name: 'employee',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchEmployee',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-EMP-00001',
+			},
+		],
 	},
 	{
 		displayName: 'Half Day Status',
@@ -69,16 +88,37 @@ const attendanceFields: INodeProperties[] = [
 	{
 		displayName: 'Leave Application',
 		name: 'leave_application',
-		type: 'string',
-		default: '',
-		description: 'The "name" field of the leave application behind this attendance record, e.g. HR-LAP-2026-00001',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		description:
+			'The "name" field of the leave application behind this attendance record, e.g. HR-LAP-2026-00001',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchLeaveApplication',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-LAP-2026-00001',
+			},
+		],
 	},
 	{
-		displayName: 'Leave Type',
+		displayName: 'Leave Type Name or ID',
 		name: 'leave_type',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getLeaveTypes' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Leave Type, si le statut vaut On Leave',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Out Time',
@@ -88,11 +128,13 @@ const attendanceFields: INodeProperties[] = [
 		description: 'Check-out timestamp',
 	},
 	{
-		displayName: 'Shift',
+		displayName: 'Shift Name or ID',
 		name: 'shift',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getShiftTypes' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Shift Type',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Status',
@@ -111,18 +153,42 @@ const attendanceFields: INodeProperties[] = [
 	},
 ];
 
-const REQUIRED_ON_CREATE = ['employee', 'attendance_date', 'status'];
+/**
+ * Fields exposed at the top level on create, outside the collection.
+ *
+ * The node imports this list to know which parameters to read there, so the fields
+ * drawn here and the fields sent cannot drift apart.
+ */
+export const ATTENDANCE_REQUIRED_ON_CREATE = ['employee', 'attendance_date', 'status'];
 
 export const attendanceDescription: INodeProperties[] = [
 	operationsFor('attendance', 'attendance record'),
 	{
 		displayName: 'Employee',
 		name: 'employee',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		required: true,
 		displayOptions: { show: { resource: ['attendance'], operation: ['create'] } },
 		description: 'The "name" field of the employee, e.g. HR-EMP-00001',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchEmployee',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-EMP-00001',
+			},
+		],
 	},
 	{
 		displayName: 'Attendance Date',
@@ -131,7 +197,7 @@ export const attendanceDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['attendance'], operation: ['create'] } },
-		description: 'Jour couvert par le pointage',
+		description: 'Day the attendance record covers',
 	},
 	{
 		displayName: 'Status',
@@ -146,6 +212,8 @@ export const attendanceDescription: INodeProperties[] = [
 	documentIdField(
 		'attendance',
 		'The Frappe record "name" field. For an attendance record it looks like HR-ATT-2026-00001.',
+		undefined,
+		'HR-ATT-2026-00001',
 	),
 	{
 		displayName: 'Additional Fields',
@@ -154,7 +222,7 @@ export const attendanceDescription: INodeProperties[] = [
 		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['attendance'], operation: ['create'] } },
-		options: omitFields(attendanceFields, REQUIRED_ON_CREATE),
+		options: omitFields(attendanceFields, ATTENDANCE_REQUIRED_ON_CREATE),
 	},
 	{
 		displayName: 'Update Fields',

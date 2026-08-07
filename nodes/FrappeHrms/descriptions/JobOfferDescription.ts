@@ -10,25 +10,47 @@ import { documentIdField, getManyFields, omitFields, operationsFor } from './Com
  */
 const jobOfferFields: INodeProperties[] = [
 	{
-		displayName: 'Company',
+		displayName: 'Company Name or ID',
 		name: 'company',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCompanies' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Company',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
-		displayName: 'Designation',
+		displayName: 'Designation Name or ID',
 		name: 'designation',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getDesignations' },
 		default: '',
-		description: 'Lien vers un enregistrement du doctype Designation',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Job Applicant',
 		name: 'job_applicant',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		description: 'The "name" field of the applicant, e.g. HR-APP-2026-00001',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchJobApplicant',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-APP-2026-00001',
+			},
+		],
 	},
 	{
 		displayName: 'Offer Date',
@@ -38,12 +60,13 @@ const jobOfferFields: INodeProperties[] = [
 		description: 'Date the offer was issued',
 	},
 	{
-		displayName: 'Select Terms',
+		displayName: 'Select Terms Name or ID',
 		name: 'select_terms',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getTermsAndConditions' },
 		default: '',
 		description:
-			'Link to a Terms and Conditions doctype record, whose content fills "Terms"',
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
 		displayName: 'Status',
@@ -64,22 +87,51 @@ const jobOfferFields: INodeProperties[] = [
 		type: 'string',
 		typeOptions: { rows: 4 },
 		default: '',
-		description: 'Conditions de la proposition. Champ Text Editor : il accepte du HTML.',
+		description: 'Terms of the offer. Text Editor field: it accepts HTML.',
 	},
 ];
 
-const REQUIRED_ON_CREATE = ['job_applicant', 'offer_date', 'designation', 'company'];
+/**
+ * Fields exposed at the top level on create, outside the collection.
+ *
+ * The node imports this list to know which parameters to read there, so the fields
+ * drawn here and the fields sent cannot drift apart.
+ */
+export const JOB_OFFER_REQUIRED_ON_CREATE = [
+	'job_applicant',
+	'offer_date',
+	'designation',
+	'company',
+];
 
 export const jobOfferDescription: INodeProperties[] = [
 	operationsFor('jobOffer', 'job offer'),
 	{
 		displayName: 'Job Applicant',
 		name: 'job_applicant',
-		type: 'string',
-		default: '',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
 		required: true,
 		displayOptions: { show: { resource: ['jobOffer'], operation: ['create'] } },
 		description: 'The "name" field of the applicant, e.g. HR-APP-2026-00001',
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: {
+					searchListMethod: 'searchJobApplicant',
+					searchable: true,
+					searchFilterRequired: false,
+				},
+			},
+			{
+				displayName: 'By Name',
+				name: 'name',
+				type: 'string',
+				placeholder: 'HR-APP-2026-00001',
+			},
+		],
 	},
 	{
 		displayName: 'Offer Date',
@@ -91,26 +143,32 @@ export const jobOfferDescription: INodeProperties[] = [
 		description: 'Date the offer was issued',
 	},
 	{
-		displayName: 'Designation',
+		displayName: 'Designation Name or ID',
 		name: 'designation',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getDesignations' },
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['jobOffer'], operation: ['create'] } },
-		description: 'Lien vers un enregistrement du doctype Designation',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	{
-		displayName: 'Company',
+		displayName: 'Company Name or ID',
 		name: 'company',
-		type: 'string',
+		type: 'options',
+		typeOptions: { loadOptionsMethod: 'getCompanies' },
 		default: '',
 		required: true,
 		displayOptions: { show: { resource: ['jobOffer'], operation: ['create'] } },
-		description: 'Lien vers un enregistrement du doctype Company',
+		description:
+			'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
 	},
 	documentIdField(
 		'jobOffer',
 		'The Frappe record "name" field. For a job offer it looks like HR-OFF-2026-00001.',
+		undefined,
+		'HR-OFF-2026-00001',
 	),
 	{
 		displayName: 'Additional Fields',
@@ -119,7 +177,7 @@ export const jobOfferDescription: INodeProperties[] = [
 		placeholder: 'Add field',
 		default: {},
 		displayOptions: { show: { resource: ['jobOffer'], operation: ['create'] } },
-		options: omitFields(jobOfferFields, REQUIRED_ON_CREATE),
+		options: omitFields(jobOfferFields, JOB_OFFER_REQUIRED_ON_CREATE),
 	},
 	{
 		displayName: 'Update Fields',
