@@ -68,8 +68,8 @@ satisferait sans rien changer à l'écran. Ne pas réactiver la règle sans en d
 
 ## Conventions de code
 
-- Prettier (`.prettierrc.js`) : **tabulations**, largeur 100, guillemets simples, points-virgules,
-  virgules finales partout, fins de ligne LF.
+- Prettier (`prettier.config.js`) : **tabulations**, largeur 100, guillemets simples,
+  points-virgules, virgules finales partout, fins de ligne LF.
 - ESLint : config `@n8n/node-cli/eslint`, non personnalisée. Elle impose les règles n8n sur
   le nommage des paramètres, `displayName`, l'ordre **alphabétique** des options et des
   champs de collection, la ponctuation finale des `description` — ces erreurs de lint sont
